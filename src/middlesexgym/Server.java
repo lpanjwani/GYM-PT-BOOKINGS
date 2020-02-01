@@ -16,7 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *S
+ * S
+ * 
  * @author LaveshPanjwani
  */
 public class Server {
@@ -57,14 +58,37 @@ class ClientRequest implements Runnable {
         try {
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BackendRequest req = (BackendRequest) in.readObject();
 
+            BackendRequest req = (BackendRequest) in.readObject();
             ArrayList<String> dbResponse = null;
 
-            switch (req.getAction()) {
-                case "GET":
-                    dbResponse = actions.getBookings();
-                    break;
+            switch (req.getCommand()) {
+            case "LISTALL":
+                dbResponse = actions.getBookings();
+                break;
+            case "LISTID":
+                System.out.println(req.getQuery());
+                dbResponse = actions.getBookingsByID(req.getQuery());
+                break;
+            case "LISTPT":
+                dbResponse = actions.getBookingsByPT(req.getQuery());
+                break;
+            case "LISTCLIENT":
+                dbResponse = actions.getBookingsByClient(req.getQuery());
+                break;
+            case "LISTDAY":
+                dbResponse = actions.getBookingsByDate(req.getDate());
+                break;
+            // case "ADD":
+            // dbResponse = actions.getBookingsByDate(req.getDate());
+            // break;
+            // case "UPDATE":
+            // dbResponse = actions.getBookingsByDate(req.getDate());
+            // break;
+            // case "DELETE":
+            // dbResponse = actions.getBookingsByDate(req.getDate());
+            // break;
+
             }
 
             for (String i : dbResponse) {

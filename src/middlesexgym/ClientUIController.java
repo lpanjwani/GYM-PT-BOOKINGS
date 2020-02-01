@@ -24,30 +24,39 @@ import javafx.scene.control.TextInputDialog;
  */
 public class ClientUIController extends ClientUIView {
 
+    private int actionID;
+    private int clientID;
+    private int PTID;
+    private Date date;
+    private Time startTime;
+    private Time endTime;
+    private int focus;
+
     public ClientUIController() {
         super();
 
-        displayCurrentBookings();
-
         // Current Bookings Section
-        currentClientSearchButton.setOnAction(this::displayCurrentBookingsByClient);
-        currentPTSearchButton.setOnAction(this::displayCurrentBookingsByPT);
-        currentDateSearchButton.setOnAction(this::displayCurrentBookingsByDate);
-        currentResetButton.setOnAction(this::resetCurrentBookings);
+        currentClientSearchButton.setOnAction(this::queryCurrentBookingsByClient);
+        currentPTSearchButton.setOnAction(this::queryCurrentBookingsByPT);
+        currentDateSearchButton.setOnAction(this::queryCurrentBookingsByDate);
+        currentResetButton.setOnAction(this::clearCurrentBookings);
 
         // Booking Actions Section
         createTypeButton.getItems().add("Add Booking");
         createTypeButton.getItems().add("Update/Delete Booking");
-        createTypeButton.setOnAction(this::actionTypeChange);
+        createTypeButton.setOnAction(this::commandChangeEvent);
+
+        // Query Server for All Current Bookings
+        queryCurrentBookings();
     }
 
-    private Scanner backendLink(BackendRequest req) {
+    private Scanner serverRequest(BackendRequest request) {
         try {
             Socket socket = new Socket("localhost", 5555);
             ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
             Scanner in = new Scanner(socket.getInputStream());
 
-            os.writeObject(req);
+            os.writeObject(request);
 
             return in;
 
@@ -57,7 +66,63 @@ public class ClientUIController extends ClientUIView {
         return null;
     }
 
-    private void actionTypeChange(Event event) {
+    /* Fetch Booking Information from GUI Fields */
+    private void inputBookingFields() {
+        // Retrieve Client ID from GUI Input Field
+        clientID = Integer.parseInt((createClientSelect.getText()));
+        // Retrieve Personal Trainer ID from GUI Input Field
+        PTID = Integer.parseInt((createPTSelect.getText()));
+        // Retrieve Date from GUI Input Field
+        date = Date.valueOf(createDateSelect.getValue());
+        // Retrieve Start Time from GUI Input Field
+        startTime = Time.valueOf(createStartTimeText.getText());
+        // Retrieve End Time from GUI Input Field
+        endTime = Time.valueOf(createEndTimeText.getText());
+        // Retrieve Focus ID from GUI Input Field
+        focus = Integer.parseInt((createFocusText.getText()));
+    }
+
+    private int getSearchQuery() {
+        int query = Integer.parseInt(currentSearchText.getText());
+        return query;
+    }
+
+    private void serverSearchQuery(String command, int query) {
+        BackendRequest request = new BackendRequest(command, query);
+        Scanner res = serverRequest(request);
+
+        clearCurrentBookings();
+        while (res.hasNext()) {
+            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
+        }
+        ;
+    }
+
+    private void serverSearchQueryDate(String command, Date query) {
+        BackendRequest request = new BackendRequest(command);
+        request.saveDate(query);
+        Scanner res = serverRequest(request);
+
+        clearCurrentBookings();
+        while (res.hasNext()) {
+            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
+        }
+        ;
+    }
+
+    private void clearCurrentBookings() {
+        currentSearchText.setText("");
+        mainTextArea.setText("");
+        // queryCurrentBookings();
+    }
+
+    private void clearCurrentBookings(ActionEvent event) {
+        currentSearchText.setText("");
+        mainTextArea.setText("");
+        // queryCurrentBookings();
+    }
+
+    private void commandChangeEvent(Event event) {
         int index = createTypeButton.getSelectionModel().getSelectedIndex();
 
         boolean createButton = false;
@@ -75,7 +140,11 @@ public class ClientUIController extends ClientUIView {
 
             if (result.isPresent()) {
                 try {
-                    displayCurrentByID(Integer.parseInt(result.get()));
+                    actionID = Integer.parseInt(result.get());
+
+                    currentSearchText.setText(Integer.toString(actionID));
+                    queryCurrentBookingsByID(actionID);
+
                     updateDeleteButtons = true;
                 } catch (NumberFormatException ex) {
                 }
@@ -90,113 +159,66 @@ public class ClientUIController extends ClientUIView {
         createDeleteButton.setVisible(updateDeleteButtons);
     }
 
-    private void displayCurrentBookings() {
+    private void queryCurrentBookings() {
+        serverSearchQuery("LISTALL", 0);
+    }
+
+    private void queryCurrentBookingsByID(int id) {
+        serverSearchQuery("LISTID", id);
+    }
+
+    private void queryCurrentBookingsByClient(ActionEvent event) {
+        serverSearchQuery("LISTPT", getSearchQuery());
+    }
+
+    private void queryCurrentBookingsByPT(ActionEvent event) {
+        serverSearchQuery("LISTCLIENT", getSearchQuery());
+    }
+
+    private void queryCurrentBookingsByDate(ActionEvent event) {
+        serverSearchQueryDate("LISTDAY", Date.valueOf(currentSearchText.getText()));
+    }
+
+    /*
+     * Send Add Booking Command to Server with Required Details & Handle Responses
+     */
+    private void addBooking() {
         try {
-            BackendRequest req = new BackendRequest("LISTALL");
-            Scanner res = backendLink(req);
-
-            while (res.hasNext()) {
-                mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-            }
-        } catch (Exception ex) {
-
-        }
-
-    }
-
-    private void displayCurrentByID(int id) {
-        BackendRequest req = new BackendRequest("LISTID ");
-        Scanner res = backendLink(req);
-
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-    }
-
-    private void displayCurrentBookingsByClient(ActionEvent event) {
-        BackendRequest req = new BackendRequest("LISTPT " + currentSearchText.getText());
-        Scanner res = backendLink(req);
-
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-    }
-
-    private void displayCurrentBookingsByPT(ActionEvent event) {
-        BackendRequest req = new BackendRequest("LISTCLIENT " + currentSearchText.getText());
-        Scanner res = backendLink(req);
-
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-    }
-
-    private void displayCurrentBookingsByDate(ActionEvent event) {
-        BackendRequest req = new BackendRequest("LISTDAY " + currentSearchText.getText());
-        Scanner res = backendLink(req);
-
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-    }
-
-    private void resetCurrentBookings(ActionEvent event) {
-        currentSearchText.setText("");
-        mainTextArea.setText("");
-        displayCurrentBookings();
-    }
-
-    private void addBookings() {
-        try {
-            // Client ID
-            int clientID = Integer.parseInt((createClientSelect.getText()));
-            int PTID = Integer.parseInt((createPTSelect.getText()));
-            Date date = Date.valueOf(createDateSelect.getValue());
-            Time startTime = Time.valueOf(createStartTimeText.getText());
-            Time endTime = Time.valueOf(createEndTimeText.getText());
-            int focus = Integer.parseInt((createFocusText.getText()));
-
-            BackendRequest req = new BackendRequest("ADD  ");
-            // BackendRequest.setAdditionalData(clientID, PTID);
-            Scanner res = backendLink(req);
+            BackendRequest request = new BackendRequest("ADD");
+            request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
+            Scanner res = serverRequest(request);
         } catch (Exception ex) {
 
         }
     }
 
+    /*
+     * Send Update Booking Command to Server with Required Details & Handle
+     * Responses
+     */
     private void updateBooking() {
         try {
-            // Client ID
-            int clientID = Integer.parseInt((createClientSelect.getText()));
-            int PTID = Integer.parseInt((createPTSelect.getText()));
-            Date date = Date.valueOf(createDateSelect.getValue());
-            Time startTime = Time.valueOf(createStartTimeText.getText());
-            Time endTime = Time.valueOf(createEndTimeText.getText());
-            int focus = Integer.parseInt((createFocusText.getText()));
-
-            BackendRequest req = new BackendRequest("UPDATE  ");
-            // BackendRequest.setAdditionalData(clientID, PTID);
-            Scanner res = backendLink(req);
+            BackendRequest request = new BackendRequest("UPDATE", actionID);
+            request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
+            Scanner res = serverRequest(request);
         } catch (Exception ex) {
 
         }
     }
 
-    private void deleteBookings() {
+    /*
+     * Send Delete Booking Command to Server with Required Details & Handle
+     * Responses
+     */
+    private void deleteBooking() {
         try {
-            // Client ID
-            int clientID = Integer.parseInt((createClientSelect.getText()));
-            int PTID = Integer.parseInt((createPTSelect.getText()));
-            Date date = Date.valueOf(createDateSelect.getValue());
-            Time startTime = Time.valueOf(createStartTimeText.getText());
-            Time endTime = Time.valueOf(createEndTimeText.getText());
-            int focus = Integer.parseInt((createFocusText.getText()));
-
-            BackendRequest req = new BackendRequest("DELETE  ");
-            // BackendRequest.setAdditionalData(clientID, PTID);
-            Scanner res = backendLink(req);
+            inputBookingFields();
+            BackendRequest request = new BackendRequest("DELETE", actionID);
+            request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
+            Scanner res = serverRequest(request);
         } catch (Exception ex) {
 
         }
     }
+
 }
