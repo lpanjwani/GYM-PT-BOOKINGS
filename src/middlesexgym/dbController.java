@@ -36,7 +36,7 @@ public class dbController {
         try {
             PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlQuery);
             // ... add parameters to the SQL query using PreparedStatement methods:
-            //     setInt, setString, etc.
+            // setInt, setString, etc.
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet;
@@ -45,6 +45,21 @@ public class dbController {
             // Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
         }
         return null;
+    }
+
+    public int runUpdate(String sqlQuery) {
+        try {
+            PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlQuery);
+            // ... add parameters to the SQL query using PreparedStatement methods:
+            // setInt, setString, etc.
+            int result = preparedStatement.executeUpdate();
+
+            return result;
+        } catch (SQLException e) {
+            // ... handle SQL exception
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return 2;
     }
 
 }

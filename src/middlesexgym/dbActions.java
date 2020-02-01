@@ -37,14 +37,13 @@ public class dbActions {
     }
 
     public ArrayList getBookings() throws SQLException {
-        ResultSet dbRes = db.runQuery(
-                "SELECT\n" + "    bookings.id,\n" + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus;");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, '"
+                + " (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
+                + "bookings.date, bookings.startTime, bookings.endTime, "
+                + "CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
+                + "INNER JOIN client ON client.id = bookings.client "
+                + "INNER JOIN staff ON staff.id = bookings.trainer "
+                + "INNER JOIN focus ON focus.id = bookings.focus ORDER BY bookings.id DESC;");
 
         ArrayList<String> bookings = bookingsDecode(dbRes);
 
@@ -52,21 +51,13 @@ public class dbActions {
     }
 
     public ArrayList getBookingsByID(int id) throws SQLException {
-        System.out.println("SELECT\n" + "    bookings.id,\n" + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus\n" + "WHERE\n" + "    bookings.id = " + id + ";");
-        ResultSet dbRes = db.runQuery(
-                "SELECT\n" + "    bookings.id,\n" + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus\n" + "WHERE\n" + "    bookings.id = " + id + ";");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name,' (ID ', client.id, ')') AS client, "
+                + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
+                + "bookings.date, bookings.startTime, bookings.endTime, "
+                + "CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus " + "FROM GYM.bookings INNER JOIN client "
+                + "ON client.id = bookings.client INNER JOIN staff "
+                + "ON staff.id = bookings.trainer INNER JOIN focus ON "
+                + "focus.id = bookings.focus WHERE bookings.id = " + id + " ORDER BY bookings.id DESC;");
 
         ArrayList<String> bookings = bookingsDecode(dbRes);
 
@@ -74,14 +65,13 @@ public class dbActions {
     }
 
     public ArrayList getBookingsByClient(int id) throws SQLException {
-        ResultSet dbRes = db.runQuery("SELECT\n" + "    bookings.id,\n"
-                + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus\n" + "WHERE\n" + "    client.id = " + id + ";");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
+                + "' (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
+                + "bookings.date, bookings.startTime, bookings.endTime, "
+                + "CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus " + "FROM GYM.bookings INNER JOIN client "
+                + "ON client.id = bookings.client INNER JOIN staff "
+                + "ON staff.id = bookings.trainer INNER JOIN focus ON " + "focus.id = bookings.focus WHERE client.id = "
+                + id + " ORDER BY bookings.id DESC;");
 
         ArrayList<String> bookings = bookingsDecode(dbRes);
 
@@ -90,14 +80,13 @@ public class dbActions {
 
     public ArrayList getBookingsByPT(int id) throws SQLException {
 
-        ResultSet dbRes = db.runQuery("SELECT\n" + "    bookings.id,\n"
-                + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus\n" + "WHERE\n" + "    staff.id = " + id + ";");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
+                + "' (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
+                + "bookings.date, bookings.startTime, bookings.endTime, "
+                + "CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus " + "FROM GYM.bookings INNER JOIN client "
+                + "ON client.id = bookings.client INNER JOIN staff "
+                + "ON staff.id = bookings.trainer INNER JOIN focus ON " + "focus.id = bookings.focus WHERE staff.id = "
+                + id + " ORDER BY bookings.id DESC; ;");
 
         ArrayList<String> bookings = bookingsDecode(dbRes);
 
@@ -105,19 +94,30 @@ public class dbActions {
     }
 
     public ArrayList getBookingsByDate(Date date) throws SQLException {
-        ResultSet dbRes = db.runQuery(
-                "SELECT\n" + "    bookings.id,\n" + "    CONCAT(client.name, ' (ID ', client.id, ')') AS client,\n"
-                + "    CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer,\n" + "    bookings.date,\n"
-                + "    bookings.startTime,\n" + "    bookings.endTime,\n"
-                + "    CONCAT(focus.name, ' (ID ', focus.id, ')') AS focus\n" + "FROM\n" + "    GYM.bookings\n"
-                + "    INNER JOIN client ON client.id = bookings.client\n"
-                + "    INNER JOIN staff ON staff.id = bookings.trainer\n"
-                + "    INNER JOIN focus ON focus.id = bookings.focus\n" + "WHERE\n"
-                + "    DATE(bookings.date) = '" + date + "';");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
+                + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
+                + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
+                + "bookings.startTime, bookings.endTime, CONCAT(focus.name, "
+                + "' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
+                + "INNER JOIN client ON client.id = bookings.client "
+                + "INNER JOIN staff ON staff.id = bookings.trainer " + "INNER JOIN focus ON focus.id = bookings.focus "
+                + "WHERE DATE(bookings.date) = " + date + " ORDER BY bookings.id DESC;");
 
         ArrayList<String> bookings = bookingsDecode(dbRes);
 
         return bookings;
+    }
+
+    public int newBooking(BackendRequest req) {
+        int result = db
+                .runUpdate("INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
+                        + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
+                        + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "' "
+                        + "FROM DUAL " + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
+                        + req.getDate() + "'" + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
+                        + req.getEndTime() + "' );");
+
+        return result;
     }
 
 }

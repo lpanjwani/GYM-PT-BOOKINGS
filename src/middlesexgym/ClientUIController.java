@@ -16,6 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
 
 /**
@@ -39,12 +41,14 @@ public class ClientUIController extends ClientUIView {
         currentClientSearchButton.setOnAction(this::queryCurrentBookingsByClient);
         currentPTSearchButton.setOnAction(this::queryCurrentBookingsByPT);
         currentDateSearchButton.setOnAction(this::queryCurrentBookingsByDate);
-        currentResetButton.setOnAction(this::clearCurrentBookings);
+        currentResetButton.setOnAction(this::resetBookingsScreen);
 
         // Booking Actions Section
         createTypeButton.getItems().add("Add Booking");
         createTypeButton.getItems().add("Update/Delete Booking");
         createTypeButton.setOnAction(this::commandChangeEvent);
+
+        createBookingButton.setOnAction(this::addBooking);
 
         // Query Server for All Current Bookings
         queryCurrentBookings();
@@ -67,7 +71,7 @@ public class ClientUIController extends ClientUIView {
     }
 
     /* Fetch Booking Information from GUI Fields */
-    private void inputBookingFields() {
+    private void populateBookingFields() throws IllegalArgumentException {
         // Retrieve Client ID from GUI Input Field
         clientID = Integer.parseInt((createClientSelect.getText()));
         // Retrieve Personal Trainer ID from GUI Input Field
@@ -75,11 +79,17 @@ public class ClientUIController extends ClientUIView {
         // Retrieve Date from GUI Input Field
         date = Date.valueOf(createDateSelect.getValue());
         // Retrieve Start Time from GUI Input Field
-        startTime = Time.valueOf(createStartTimeText.getText());
+        startTime = Time.valueOf(createStartTimeText.getText() + ":00");
         // Retrieve End Time from GUI Input Field
-        endTime = Time.valueOf(createEndTimeText.getText());
+        endTime = Time.valueOf(createEndTimeText.getText() + ":00");
         // Retrieve Focus ID from GUI Input Field
         focus = Integer.parseInt((createFocusText.getText()));
+
+        int diff = endTime.compareTo(startTime);
+        if (diff < 0 || diff == 0) {
+            throw new IllegalArgumentException();
+        }
+
     }
 
     private int getSearchQuery() {
@@ -88,10 +98,10 @@ public class ClientUIController extends ClientUIView {
     }
 
     private void serverSearchQuery(String command, int query) {
+        clearCurrentBookings();
         BackendRequest request = new BackendRequest(command, query);
         Scanner res = serverRequest(request);
 
-        clearCurrentBookings();
         while (res.hasNext()) {
             mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
         }
@@ -99,27 +109,25 @@ public class ClientUIController extends ClientUIView {
     }
 
     private void serverSearchQueryDate(String command, Date query) {
+        clearCurrentBookings();
         BackendRequest request = new BackendRequest(command);
         request.saveDate(query);
         Scanner res = serverRequest(request);
 
-        clearCurrentBookings();
         while (res.hasNext()) {
             mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
         }
         ;
     }
 
+    public void resetBookingsScreen(ActionEvent event) {
+        clearCurrentBookings();
+        queryCurrentBookings();
+    }
+
     private void clearCurrentBookings() {
         currentSearchText.setText("");
         mainTextArea.setText("");
-        // queryCurrentBookings();
-    }
-
-    private void clearCurrentBookings(ActionEvent event) {
-        currentSearchText.setText("");
-        mainTextArea.setText("");
-        // queryCurrentBookings();
     }
 
     private void commandChangeEvent(Event event) {
@@ -141,7 +149,7 @@ public class ClientUIController extends ClientUIView {
             if (result.isPresent()) {
                 try {
                     actionID = Integer.parseInt(result.get());
-
+                    clearCurrentBookings();
                     currentSearchText.setText(Integer.toString(actionID));
                     queryCurrentBookingsByID(actionID);
 
@@ -168,27 +176,68 @@ public class ClientUIController extends ClientUIView {
     }
 
     private void queryCurrentBookingsByClient(ActionEvent event) {
-        serverSearchQuery("LISTPT", getSearchQuery());
+        try {
+            serverSearchQuery("LISTPT", getSearchQuery());
+        } catch (NumberFormatException ex) {
+            actionErrorAlert("Please enter a valid ID!");
+        }
     }
 
     private void queryCurrentBookingsByPT(ActionEvent event) {
-        serverSearchQuery("LISTCLIENT", getSearchQuery());
+        try {
+            serverSearchQuery("LISTCLIENT", getSearchQuery());
+        } catch (NumberFormatException ex) {
+            actionErrorAlert("Please enter a valid ID!");
+        }
     }
 
     private void queryCurrentBookingsByDate(ActionEvent event) {
-        serverSearchQueryDate("LISTDAY", Date.valueOf(currentSearchText.getText()));
+        try {
+            serverSearchQueryDate("LISTDAY", Date.valueOf(currentSearchText.getText()));
+        } catch (NumberFormatException ex) {
+            actionErrorAlert("Please enter a valid date!");
+        }
+    }
+
+    public void actionStateHandler(Scanner res) {
+        while (res.hasNext()) {
+            String message = res.nextLine();
+            if (message.contains("Success")) {
+                actionSuccessAlert(message);
+            } else {
+                actionErrorAlert(message);
+            }
+        }
+        ;
+    }
+
+    public void actionSuccessAlert(String message) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Success");
+        alert.setHeaderText("Copy That! Operation blackhawk is a success.");
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public void actionErrorAlert(String message) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Ooops Houston, there is a problem!");
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /*
      * Send Add Booking Command to Server with Required Details & Handle Responses
      */
-    private void addBooking() {
+    private void addBooking(ActionEvent event) {
         try {
+            populateBookingFields();
             BackendRequest request = new BackendRequest("ADD");
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
-            Scanner res = serverRequest(request);
-        } catch (Exception ex) {
-
+            actionStateHandler(serverRequest(request));
+        } catch (IllegalArgumentException ex) {
+            actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
     }
 
@@ -198,11 +247,12 @@ public class ClientUIController extends ClientUIView {
      */
     private void updateBooking() {
         try {
+            populateBookingFields();
             BackendRequest request = new BackendRequest("UPDATE", actionID);
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
-            Scanner res = serverRequest(request);
-        } catch (Exception ex) {
-
+            actionStateHandler(serverRequest(request));
+        } catch (IllegalArgumentException ex) {
+            actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
     }
 
@@ -212,12 +262,11 @@ public class ClientUIController extends ClientUIView {
      */
     private void deleteBooking() {
         try {
-            inputBookingFields();
+            populateBookingFields();
             BackendRequest request = new BackendRequest("DELETE", actionID);
-            request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
-            Scanner res = serverRequest(request);
+            actionStateHandler(serverRequest(request));
         } catch (Exception ex) {
-
+            // actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
     }
 

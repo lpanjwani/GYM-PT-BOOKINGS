@@ -50,6 +50,26 @@ public class BackendRequest implements Serializable {
         this.date = date;
     }
 
+    public int getClient() {
+        return client;
+    }
+
+    public int getPT() {
+        return PT;
+    }
+
+    public Time getStartTime() {
+        return startTime;
+    }
+
+    public Time getEndTime() {
+        return endTime;
+    }
+
+    public int getFocus() {
+        return focus;
+    }
+
     public void setAdditionalData(int client, int PT, Date date, Time startTime, Time endTime, int focus) {
         this.client = client;
         this.PT = PT;
