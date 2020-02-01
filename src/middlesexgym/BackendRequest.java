@@ -15,7 +15,8 @@ import java.sql.Time;
  */
 public class BackendRequest implements Serializable {
 
-    private final String action;
+    private final String command;
+    private int query;
 
     private int client;
     private int PT;
@@ -24,12 +25,29 @@ public class BackendRequest implements Serializable {
     private Time endTime;
     private int focus;
 
-    public BackendRequest(String action) {
-        this.action = action;
+    public BackendRequest(String command) {
+        this.command = command;
     }
 
-    public String getAction() {
-        return action;
+    public BackendRequest(String command, int queryID) {
+        this.command = command;
+        this.query = queryID;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public int getQuery() {
+        return query;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void saveDate(Date date) {
+        this.date = date;
     }
 
     public void setAdditionalData(int client, int PT, Date date, Time startTime, Time endTime, int focus) {
@@ -40,4 +58,5 @@ public class BackendRequest implements Serializable {
         this.endTime = endTime;
         this.focus = focus;
     }
+
 }
