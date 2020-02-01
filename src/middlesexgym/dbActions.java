@@ -108,16 +108,43 @@ public class dbActions {
         return bookings;
     }
 
-    public int newBooking(BackendRequest req) {
-        int result = db
-                .runUpdate("INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
-                        + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
-                        + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "' "
-                        + "FROM DUAL " + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
-                        + req.getDate() + "'" + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
-                        + req.getEndTime() + "' );");
+    public String newBooking(BackendRequest req) {
+        int result = db.runUpdate("INSERT INTO GYM.bookings (`client`,"
+                + "`trainer`,`date`,`startTime`,`endTime`,`focus`) " + "SELECT '" + req.getClient() + "', '"
+                + req.getPT() + "'," + " '" + req.getDate() + "', '" + req.getStartTime() + "'," + " '"
+                + req.getEndTime() + "', '" + req.getFocus() + "' " + "FROM DUAL "
+                + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
+                + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime() + "' );");
 
-        return result;
+        if (result == 0) {
+            return "Error - Conflicting Booking Exists";
+        } else if (result == 1) {
+            return "Success - Booking Successfully Created";
+        }
+
+        return "Error - Booking Creation Error";
+    }
+
+    public String updateBooking(BackendRequest req) {
+        int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
+                + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='" + req.getEndTime()
+                + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery() + ";");
+
+        if (result == 1) {
+            return "Success - Booking Successfully Updated";
+        }
+
+        return "Error - Booking Updation Error";
+    }
+
+    public String deleteBooking(BackendRequest req) {
+        int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
+
+        if (result == 1) {
+            return "Success - Booking Successfully Updated";
+        }
+
+        return "Error - Booking Deleting Error";
     }
 
 }

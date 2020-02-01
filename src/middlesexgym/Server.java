@@ -61,34 +61,34 @@ class ClientRequest implements Runnable {
 
             BackendRequest req = (BackendRequest) in.readObject();
             ArrayList<String> dbResponse = null;
-            int response = 2;
+            String response = null;
 
             switch (req.getCommand()) {
-                case "LISTALL":
-                    dbResponse = actions.getBookings();
-                    break;
-                case "LISTID":
-                    System.out.println(req.getQuery());
-                    dbResponse = actions.getBookingsByID(req.getQuery());
-                    break;
-                case "LISTPT":
-                    dbResponse = actions.getBookingsByPT(req.getQuery());
-                    break;
-                case "LISTCLIENT":
-                    dbResponse = actions.getBookingsByClient(req.getQuery());
-                    break;
-                case "LISTDAY":
-                    dbResponse = actions.getBookingsByDate(req.getDate());
-                    break;
-                case "ADD":
-                    response = actions.newBooking(req);
-                    break;
-                // case "UPDATE":
-                // dbResponse = actions.getBookingsByDate(req.getDate());
-                // break;
-                // case "DELETE":
-                // dbResponse = actions.getBookingsByDate(req.getDate());
-                // break;
+            case "LISTALL":
+                dbResponse = actions.getBookings();
+                break;
+            case "LISTID":
+                System.out.println(req.getQuery());
+                dbResponse = actions.getBookingsByID(req.getQuery());
+                break;
+            case "LISTPT":
+                dbResponse = actions.getBookingsByPT(req.getQuery());
+                break;
+            case "LISTCLIENT":
+                dbResponse = actions.getBookingsByClient(req.getQuery());
+                break;
+            case "LISTDAY":
+                dbResponse = actions.getBookingsByDate(req.getDate());
+                break;
+            case "ADD":
+                response = actions.newBooking(req);
+                break;
+            case "UPDATE":
+                response = actions.updateBooking(req);
+                break;
+            case "DELETE":
+                response = actions.deleteBooking(req);
+                break;
 
             }
 
@@ -97,18 +97,7 @@ class ClientRequest implements Runnable {
                     out.println(i);
                 }
             } else {
-                switch (response) {
-                    case 0:
-                        out.println("Error - Conflicting Booking Exists");
-                        break;
-                    case 1:
-                        out.println("Success - Booking Successfully Created/Updated");
-                        break;
-                    case 2:
-                        out.println("Error - Booking Creation/Updation Error");
-                        break;
-
-                }
+                out.print(response);
             }
 
             in.close();
