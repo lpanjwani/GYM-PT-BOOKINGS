@@ -1,5 +1,7 @@
+/* Gym Application Package */
 package middlesexgym;
 
+/* Class Requirements & Dependencies */
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
@@ -14,6 +16,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 
+/**
+ * This class deals with placing & layout of User Interface Components. The
+ * class is the abstracted for security measures.
+ * 
+ * @author Lavesh Panjwani (M00692913)
+ */
 public abstract class ClientUIView extends VBox {
 
     protected final SplitPane splitPane;

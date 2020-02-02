@@ -1,10 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/* Gym Application Package */
 package middlesexgym;
 
+/* Class Requirements & Dependencies */
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -21,10 +18,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
 
 /**
- *
- * @author LaveshPanjwani
+ * This class deals with handling & controlling User Interface components and
+ * Server
+ * 
+ * @author Lavesh Panjwani (M00692913)
  */
-public class ClientUIController extends ClientUIView {
+public class ClientController extends ClientUIView {
 
     private int actionID;
     private int clientID;
@@ -34,7 +33,7 @@ public class ClientUIController extends ClientUIView {
     private Time endTime;
     private int focus;
 
-    public ClientUIController() {
+    public ClientController() {
         super();
 
         // Current Bookings Section
@@ -49,11 +48,16 @@ public class ClientUIController extends ClientUIView {
         createTypeButton.setOnAction(this::commandChangeEvent);
 
         createBookingButton.setOnAction(this::addBooking);
+        createUpdateButton.setOnAction(this::updateBooking);
+        createDeleteButton.setOnAction(this::deleteBooking);
 
         // Query Server for All Current Bookings
         queryCurrentBookings();
     }
 
+    /*
+     * Send Server Request with Class BackendRequest
+     */
     private Scanner serverRequest(BackendRequest request) {
         try {
             Socket socket = new Socket("localhost", 5555);
@@ -65,12 +69,14 @@ public class ClientUIController extends ClientUIView {
             return in;
 
         } catch (IOException ex) {
-            Logger.getLogger(ClientUIController.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientController.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
 
-    /* Fetch Booking Information from GUI Fields */
+    /*
+     * Retrieve Booking Information Entered by the User in GUI Fields
+     */
     private void populateBookingFields() throws IllegalArgumentException {
         // Retrieve Client ID from GUI Input Field
         clientID = Integer.parseInt((createClientSelect.getText()));
@@ -92,11 +98,18 @@ public class ClientUIController extends ClientUIView {
 
     }
 
+    /*
+     * Retrieve Search Query Information from the Graphical User Interface
+     */
     private int getSearchQuery() {
         int query = Integer.parseInt(currentSearchText.getText());
         return query;
     }
 
+    /*
+     * Send Request to Server via BackendRequest Object, Handle & Process Responses
+     * in the Graphical User Interface
+     */
     private void serverSearchQuery(String command, int query) {
         clearCurrentBookings();
         BackendRequest request = new BackendRequest(command, query);
@@ -108,6 +121,10 @@ public class ClientUIController extends ClientUIView {
         ;
     }
 
+    /*
+     * Send Request to Server with Date based Query, Handle & Process Responses in
+     * the Graphical User Interface
+     */
     private void serverSearchQueryDate(String command, Date query) {
         clearCurrentBookings();
         BackendRequest request = new BackendRequest(command);
@@ -120,16 +137,25 @@ public class ClientUIController extends ClientUIView {
         ;
     }
 
-    public void resetBookingsScreen(ActionEvent event) {
+    /*
+     * Reset Bookings Button Action Handler
+     */
+    private void resetBookingsScreen(ActionEvent event) {
         clearCurrentBookings();
         queryCurrentBookings();
     }
 
+    /*
+     * Clears Bookings Text Area
+     */
     private void clearCurrentBookings() {
         currentSearchText.setText("");
         mainTextArea.setText("");
     }
 
+    /*
+     * Handles Views & Buttons Visibility Depending on State Selected by User
+     */
     private void commandChangeEvent(Event event) {
         int index = createTypeButton.getSelectionModel().getSelectedIndex();
 
@@ -167,14 +193,23 @@ public class ClientUIController extends ClientUIView {
         createDeleteButton.setVisible(updateDeleteButtons);
     }
 
+    /*
+     * Retrieve All Bookings from Server Action Handler
+     */
     private void queryCurrentBookings() {
         serverSearchQuery("LISTALL", 0);
     }
 
+    /*
+     * Search Booking by Booking ID Action Handler
+     */
     private void queryCurrentBookingsByID(int id) {
         serverSearchQuery("LISTID", id);
     }
 
+    /*
+     * Search Bookings by Client ID Action Handler
+     */
     private void queryCurrentBookingsByClient(ActionEvent event) {
         try {
             serverSearchQuery("LISTPT", getSearchQuery());
@@ -183,6 +218,9 @@ public class ClientUIController extends ClientUIView {
         }
     }
 
+    /*
+     * Search Bookings by Personal Trainer ID Action Handler
+     */
     private void queryCurrentBookingsByPT(ActionEvent event) {
         try {
             serverSearchQuery("LISTCLIENT", getSearchQuery());
@@ -191,6 +229,9 @@ public class ClientUIController extends ClientUIView {
         }
     }
 
+    /*
+     * Search Bookings by Date Action Handler
+     */
     private void queryCurrentBookingsByDate(ActionEvent event) {
         try {
             serverSearchQueryDate("LISTDAY", Date.valueOf(currentSearchText.getText()));
@@ -199,7 +240,11 @@ public class ClientUIController extends ClientUIView {
         }
     }
 
-    public void actionStateHandler(Scanner res) {
+    /*
+     * Conditional State Handler decides whether to show Sucess or Failure Alert
+     * Boxes
+     */
+    private void actionStateHandler(Scanner res) {
         while (res.hasNext()) {
             String message = res.nextLine();
             if (message.contains("Success")) {
@@ -211,7 +256,10 @@ public class ClientUIController extends ClientUIView {
         ;
     }
 
-    public void actionSuccessAlert(String message) {
+    /*
+     * Displaying Sucess Alert Box to User
+     */
+    private void actionSuccessAlert(String message) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Success");
         alert.setHeaderText("Copy That! Operation blackhawk is a success.");
@@ -219,7 +267,10 @@ public class ClientUIController extends ClientUIView {
         alert.showAndWait();
     }
 
-    public void actionErrorAlert(String message) {
+    /*
+     * Displaying Error Alert Box to User
+     */
+    private void actionErrorAlert(String message) {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText("Ooops Houston, there is a problem!");
@@ -245,7 +296,7 @@ public class ClientUIController extends ClientUIView {
      * Send Update Booking Command to Server with Required Details & Handle
      * Responses
      */
-    private void updateBooking() {
+    private void updateBooking(ActionEvent event) {
         try {
             populateBookingFields();
             BackendRequest request = new BackendRequest("UPDATE", actionID);
@@ -260,7 +311,7 @@ public class ClientUIController extends ClientUIView {
      * Send Delete Booking Command to Server with Required Details & Handle
      * Responses
      */
-    private void deleteBooking() {
+    private void deleteBooking(ActionEvent event) {
         try {
             populateBookingFields();
             BackendRequest request = new BackendRequest("DELETE", actionID);

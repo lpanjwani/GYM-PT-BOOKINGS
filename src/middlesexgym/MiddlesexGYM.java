@@ -1,23 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/* Gym Application Package */
 package middlesexgym;
 
+/* Class Requirements & Dependencies */
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
- *
- * @author LaveshPanjwani
+ * This class initializes the Client-Side Graphical User Interface
+ * 
+ * @author Lavesh Panjwani (M00692913)
  */
 public class MiddlesexGYM extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        ClientUIController root = new ClientUIController();
+        ClientController root = new ClientController();
 
         Scene scene = new Scene(root);
 

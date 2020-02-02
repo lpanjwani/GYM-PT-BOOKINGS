@@ -1,10 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/* Gym Application Package */
 package middlesexgym;
 
+/* Class Requirements & Dependencies */
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
@@ -16,9 +13,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * S
- *
- * @author LaveshPanjwani
+ * This class initializes the Server-Side Java Application and starts
+ * ClientRequest to achieve Concurrent Multiple Clients Functionality
+ * 
+ * @author Lavesh Panjwani (M00692913)
  */
 public class Server {
 
@@ -43,6 +41,11 @@ public class Server {
 
 }
 
+/**
+ * This class handles Conditonal Routing of Request & redirects accordingly.
+ * 
+ * @author Lavesh Panjwani (M00692913)
+ */
 class ClientRequest implements Runnable {
 
     private final Socket socket;
