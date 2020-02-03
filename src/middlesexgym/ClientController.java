@@ -80,13 +80,20 @@ public class ClientController extends ClientView {
                 message += in.nextLine() + "\n";
             }
 
+            // Close Output Stream to free up resources
+            os.close();
+            // Close Input Stream to free up resources
+            in.close();
+            // Close Connection with Server to free up server buffers
+            socket.close();
+
             // Return Message
             return message;
         } catch (IOException ex) {
             actionErrorAlert("I faced some connection issues. Do we have an active network working?");
         }
 
-        return "";
+        return null;
     }
 
     /*
@@ -159,9 +166,6 @@ public class ClientController extends ClientView {
 
         // Output Response in Main Text Area
         mainTextArea.setText(mainTextArea.getText() + res + "\n");
-
-        // Close Connection with Server to free up server buffers
-        // res.close();
     }
 
     /*
@@ -309,9 +313,6 @@ public class ClientController extends ClientView {
             // Show Error Message
             actionErrorAlert(message);
         }
-
-        // Close Connection with Server to free up server buffers
-        // res.close();
     }
 
     /*
