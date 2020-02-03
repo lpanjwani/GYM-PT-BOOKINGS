@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 /**
  * This class initializes the Server-Side Java Application and starts
  * ClientRequest to achieve Concurrent Multiple Clients Functionality
- * 
+ *
  * @author Lavesh Panjwani (M00692913)
  */
 public class Server {
@@ -43,12 +43,14 @@ public class Server {
 
 /**
  * This class handles Conditonal Routing of Request & redirects accordingly.
- * 
+ *
  * @author Lavesh Panjwani (M00692913)
  */
 class ClientRequest implements Runnable {
 
     private final Socket socket;
+    private ObjectInputStream in;
+    private PrintWriter out;
     private final dbActions actions;
 
     ClientRequest(Socket socket) {
@@ -59,39 +61,38 @@ class ClientRequest implements Runnable {
     @Override
     public void run() {
         try {
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            in = new ObjectInputStream(socket.getInputStream());
+            out = new PrintWriter(socket.getOutputStream(), true);
 
             BackendRequest req = (BackendRequest) in.readObject();
             ArrayList<String> dbResponse = null;
             String response = null;
 
             switch (req.getCommand()) {
-            case "LISTALL":
-                dbResponse = actions.getBookings();
-                break;
-            case "LISTID":
-                System.out.println(req.getQuery());
-                dbResponse = actions.getBookingsByID(req.getQuery());
-                break;
-            case "LISTPT":
-                dbResponse = actions.getBookingsByPT(req.getQuery());
-                break;
-            case "LISTCLIENT":
-                dbResponse = actions.getBookingsByClient(req.getQuery());
-                break;
-            case "LISTDAY":
-                dbResponse = actions.getBookingsByDate(req.getDate());
-                break;
-            case "ADD":
-                response = actions.newBooking(req);
-                break;
-            case "UPDATE":
-                response = actions.updateBooking(req);
-                break;
-            case "DELETE":
-                response = actions.deleteBooking(req);
-                break;
+                case "LISTALL":
+                    dbResponse = actions.getBookings();
+                    break;
+                case "LISTID":
+                    dbResponse = actions.getBookingsByID(req.getQuery());
+                    break;
+                case "LISTPT":
+                    dbResponse = actions.getBookingsByPT(req.getQuery());
+                    break;
+                case "LISTCLIENT":
+                    dbResponse = actions.getBookingsByClient(req.getQuery());
+                    break;
+                case "LISTDAY":
+                    dbResponse = actions.getBookingsByDate(req.getDate());
+                    break;
+                case "ADD":
+                    response = actions.newBooking(req);
+                    break;
+                case "UPDATE":
+                    response = actions.updateBooking(req);
+                    break;
+                case "DELETE":
+                    response = actions.deleteBooking(req);
+                    break;
 
             }
 
@@ -100,17 +101,15 @@ class ClientRequest implements Runnable {
                     out.println(i);
                 }
             } else {
-                out.print(response);
+                out.println(response);
             }
 
             in.close();
             out.close();
             socket.close();
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
             Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);

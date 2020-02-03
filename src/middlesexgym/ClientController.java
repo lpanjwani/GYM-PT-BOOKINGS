@@ -9,8 +9,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.Alert;
@@ -25,7 +23,10 @@ import javafx.scene.control.TextInputDialog;
  */
 public class ClientController extends ClientUIView {
 
-    private int actionID;
+    // Stores Booking ID for Update & Delete Operations
+    private int bookingID;
+
+    // Booking Details required by Major Operations such as Add & Update Booking
     private int clientID;
     private int PTID;
     private Date date;
@@ -42,11 +43,12 @@ public class ClientController extends ClientUIView {
         currentDateSearchButton.setOnAction(this::queryCurrentBookingsByDate);
         currentResetButton.setOnAction(this::resetBookingsScreen);
 
-        // Booking Actions Section
+        // Booking Operation Section
         createTypeButton.getItems().add("Add Booking");
         createTypeButton.getItems().add("Update/Delete Booking");
         createTypeButton.setOnAction(this::commandChangeEvent);
 
+        // Booking Operation Buttons link Click Handler
         createBookingButton.setOnAction(this::addBooking);
         createUpdateButton.setOnAction(this::updateBooking);
         createDeleteButton.setOnAction(this::deleteBooking);
@@ -58,20 +60,33 @@ public class ClientController extends ClientUIView {
     /*
      * Send Server Request with Class BackendRequest
      */
-    private Scanner serverRequest(BackendRequest request) {
+    private String serverRequest(BackendRequest request) {
         try {
+            // Create New Socket on Port 5555
             Socket socket = new Socket("localhost", 5555);
+            // Create Object Output Stream for Client-Server Communication
             ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+            // Create Scanner Input Class for Server-Client Communication
             Scanner in = new Scanner(socket.getInputStream());
 
+            // Send Object to Server for Requests Standardization
             os.writeObject(request);
 
-            return in;
+            // Initialize Empty String
+            String message = "";
+            // Print All String Information in String
+            while (in.hasNext()) {
+                // Retrieve String Message
+                message += in.nextLine() + "\n";
+            }
 
+            // Return Message
+            return message;
         } catch (IOException ex) {
-            Logger.getLogger(ClientController.class.getName()).log(Level.SEVERE, null, ex);
+            actionErrorAlert("I faced some connection issues. Do we have an active network working?");
         }
-        return null;
+
+        return "";
     }
 
     /*
@@ -91,8 +106,11 @@ public class ClientController extends ClientUIView {
         // Retrieve Focus ID from GUI Input Field
         focus = Integer.parseInt((createFocusText.getText()));
 
+        // Compare Start Time & End Time for Verification
         int diff = endTime.compareTo(startTime);
+        // Throw Error if Time is incorrect
         if (diff < 0 || diff == 0) {
+            // Throw Illegal Argument
             throw new IllegalArgumentException();
         }
 
@@ -102,6 +120,7 @@ public class ClientController extends ClientUIView {
      * Retrieve Search Query Information from the Graphical User Interface
      */
     private int getSearchQuery() {
+        // Convert String to Integer for Validation
         int query = Integer.parseInt(currentSearchText.getText());
         return query;
     }
@@ -111,14 +130,17 @@ public class ClientController extends ClientUIView {
      * in the Graphical User Interface
      */
     private void serverSearchQuery(String command, int query) {
+        // Clear Current Bookings Screen
         clearCurrentBookings();
-        BackendRequest request = new BackendRequest(command, query);
-        Scanner res = serverRequest(request);
 
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-        ;
+        // Create Class for Client-Server Communication
+        BackendRequest request = new BackendRequest(command, query);
+
+        // Retrieve String Information in Scanner Class
+        String res = serverRequest(request);
+
+        // Output Response in Main Text Area
+        mainTextArea.setText(mainTextArea.getText() + res + "\n");
     }
 
     /*
@@ -126,22 +148,29 @@ public class ClientController extends ClientUIView {
      * the Graphical User Interface
      */
     private void serverSearchQueryDate(String command, Date query) {
+        // Clear Current Bookings Screen
         clearCurrentBookings();
+        // Create Class for Client-Server Communication
         BackendRequest request = new BackendRequest(command);
+        // Save Date Information in Class
         request.saveDate(query);
-        Scanner res = serverRequest(request);
+        // Retrieve String Information in Scanner Class
+        String res = serverRequest(request);
 
-        while (res.hasNext()) {
-            mainTextArea.setText(mainTextArea.getText() + res.nextLine() + "\n");
-        }
-        ;
+        // Output Response in Main Text Area
+        mainTextArea.setText(mainTextArea.getText() + res + "\n");
+
+        // Close Connection with Server to free up server buffers
+        // res.close();
     }
 
     /*
      * Reset Bookings Button Action Handler
      */
     private void resetBookingsScreen(ActionEvent event) {
+        // Clear Current Booking Screen
         clearCurrentBookings();
+        // Fetch All Bookings from Server
         queryCurrentBookings();
     }
 
@@ -149,7 +178,9 @@ public class ClientController extends ClientUIView {
      * Clears Bookings Text Area
      */
     private void clearCurrentBookings() {
+        // Clear Current Search Query Text
         currentSearchText.setText("");
+        // Clear Main Bookings Area Text
         mainTextArea.setText("");
     }
 
@@ -157,37 +188,54 @@ public class ClientController extends ClientUIView {
      * Handles Views & Buttons Visibility Depending on State Selected by User
      */
     private void commandChangeEvent(Event event) {
+        // Check Selection Index
         int index = createTypeButton.getSelectionModel().getSelectedIndex();
 
+        // Flags for Easier State Management
         boolean createButton = false;
         boolean updateDeleteButtons = false;
 
+        // Conditional State Handling
         if (index == 0) {
+            // Indicate New Booking Button Visibility
             createButton = true;
         } else {
-
+            // Show Text Input Dialog to check Booking ID
             TextInputDialog dialog = new TextInputDialog();
+            // Set Dialog Title
             dialog.setTitle("Update/Delete Bookings");
+            // Set Dialog Header Text
             dialog.setHeaderText("Enter Booking ID");
+            // Set Dialog Content Text
             dialog.setContentText("Please enter the booking ID to be updated/deleted:");
+            // Show Dialog
             Optional<String> result = dialog.showAndWait();
 
+            // Check for Input
             if (result.isPresent()) {
                 try {
-                    actionID = Integer.parseInt(result.get());
+                    // Retrieve Booking ID
+                    bookingID = Integer.parseInt(result.get());
+                    // Clear Booking Screen
                     clearCurrentBookings();
-                    currentSearchText.setText(Integer.toString(actionID));
-                    queryCurrentBookingsByID(actionID);
+                    // Set Search Query Text
+                    currentSearchText.setText(Integer.toString(bookingID));
+                    // Query Booking Information
+                    queryCurrentBookingsByID(bookingID);
 
+                    // Indicate Update & Delete Booking Button Visibility
                     updateDeleteButtons = true;
                 } catch (NumberFormatException ex) {
+                    // Throw Error if Booking ID is not a number
+                    actionErrorAlert("Please enter valid Booking ID");
                 }
             } else {
+                // Indicate New Booking Button Visibility
                 createButton = false;
             }
-
         }
 
+        // Set Buttons Visibility
         createBookingButton.setVisible(createButton);
         createUpdateButton.setVisible(updateDeleteButtons);
         createDeleteButton.setVisible(updateDeleteButtons);
@@ -197,6 +245,7 @@ public class ClientController extends ClientUIView {
      * Retrieve All Bookings from Server Action Handler
      */
     private void queryCurrentBookings() {
+        // Send LISTALL Query
         serverSearchQuery("LISTALL", 0);
     }
 
@@ -204,6 +253,7 @@ public class ClientController extends ClientUIView {
      * Search Booking by Booking ID Action Handler
      */
     private void queryCurrentBookingsByID(int id) {
+        // Send LISTID Query
         serverSearchQuery("LISTID", id);
     }
 
@@ -212,8 +262,10 @@ public class ClientController extends ClientUIView {
      */
     private void queryCurrentBookingsByClient(ActionEvent event) {
         try {
-            serverSearchQuery("LISTPT", getSearchQuery());
+            // Send LISTCLIENT Query
+            serverSearchQuery("LISTCLIENT", getSearchQuery());
         } catch (NumberFormatException ex) {
+            // Throw Error if ID is not a number
             actionErrorAlert("Please enter a valid ID!");
         }
     }
@@ -223,8 +275,10 @@ public class ClientController extends ClientUIView {
      */
     private void queryCurrentBookingsByPT(ActionEvent event) {
         try {
-            serverSearchQuery("LISTCLIENT", getSearchQuery());
+            // Send LISTPT Query
+            serverSearchQuery("LISTPT", getSearchQuery());
         } catch (NumberFormatException ex) {
+            // Throw Error if ID is not a number
             actionErrorAlert("Please enter a valid ID!");
         }
     }
@@ -234,36 +288,45 @@ public class ClientController extends ClientUIView {
      */
     private void queryCurrentBookingsByDate(ActionEvent event) {
         try {
+            // Send LISTDAY Query
             serverSearchQueryDate("LISTDAY", Date.valueOf(currentSearchText.getText()));
         } catch (NumberFormatException ex) {
+            // Throw Error if ID is not a number
             actionErrorAlert("Please enter a valid date!");
         }
     }
 
     /*
-     * Conditional State Handler decides whether to show Sucess or Failure Alert
+     * Conditional State Handler decides whether to show Success or Failure Alert
      * Boxes
      */
-    private void actionStateHandler(Scanner res) {
-        while (res.hasNext()) {
-            String message = res.nextLine();
-            if (message.contains("Success")) {
-                actionSuccessAlert(message);
-            } else {
-                actionErrorAlert(message);
-            }
+    private void actionStateHandler(String message) {
+        // Condition State Routing
+        if (message.contains("Success")) {
+            // Show Success Message
+            actionSuccessAlert(message);
+        } else {
+            // Show Error Message
+            actionErrorAlert(message);
         }
-        ;
+
+        // Close Connection with Server to free up server buffers
+        // res.close();
     }
 
     /*
-     * Displaying Sucess Alert Box to User
+     * Displaying Success Alert Box to User
      */
     private void actionSuccessAlert(String message) {
+        // Create Information Alert Box & Display
         Alert alert = new Alert(AlertType.INFORMATION);
+        // Set Alert Title
         alert.setTitle("Success");
+        // Set Alert Header Text
         alert.setHeaderText("Copy That! Operation blackhawk is a success.");
+        // Set Alert Content Text
         alert.setContentText(message);
+        // Display Alert Box & Wait until Dismissed
         alert.showAndWait();
     }
 
@@ -271,10 +334,15 @@ public class ClientController extends ClientUIView {
      * Displaying Error Alert Box to User
      */
     private void actionErrorAlert(String message) {
+        // Create Error Alert Box & Display
         Alert alert = new Alert(AlertType.ERROR);
+        // Set Alert Title
         alert.setTitle("Error");
+        // Set Alert Header Text
         alert.setHeaderText("Ooops Houston, there is a problem!");
+        // Set Alert Content Text
         alert.setContentText(message);
+        // Display Alert Box & Wait until Dismissed
         alert.showAndWait();
     }
 
@@ -286,7 +354,8 @@ public class ClientController extends ClientUIView {
             populateBookingFields();
             BackendRequest request = new BackendRequest("ADD");
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
-            actionStateHandler(serverRequest(request));
+            String response = serverRequest(request);
+            actionStateHandler(response);
         } catch (IllegalArgumentException ex) {
             actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
@@ -299,9 +368,10 @@ public class ClientController extends ClientUIView {
     private void updateBooking(ActionEvent event) {
         try {
             populateBookingFields();
-            BackendRequest request = new BackendRequest("UPDATE", actionID);
+            BackendRequest request = new BackendRequest("UPDATE", bookingID);
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
-            actionStateHandler(serverRequest(request));
+            String response = serverRequest(request);
+            actionStateHandler(response);
         } catch (IllegalArgumentException ex) {
             actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
@@ -314,8 +384,9 @@ public class ClientController extends ClientUIView {
     private void deleteBooking(ActionEvent event) {
         try {
             populateBookingFields();
-            BackendRequest request = new BackendRequest("DELETE", actionID);
-            actionStateHandler(serverRequest(request));
+            BackendRequest request = new BackendRequest("DELETE", bookingID);
+            String response = serverRequest(request);
+            actionStateHandler(response);
         } catch (Exception ex) {
             // actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
