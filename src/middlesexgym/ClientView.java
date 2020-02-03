@@ -22,7 +22,7 @@ import javafx.scene.text.Font;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public abstract class ClientUIView extends VBox {
+public abstract class ClientView extends VBox {
 
     protected final SplitPane splitPane;
     protected final AnchorPane currentAnchorPane;
@@ -57,7 +57,7 @@ public abstract class ClientUIView extends VBox {
     protected final TextField createClientSelect;
     protected final TextField createEndTimeText;
 
-    public ClientUIView() {
+    public ClientView() {
 
         splitPane = new SplitPane();
         currentAnchorPane = new AnchorPane();

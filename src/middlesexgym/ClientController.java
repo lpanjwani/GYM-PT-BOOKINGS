@@ -21,7 +21,7 @@ import javafx.scene.control.TextInputDialog;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public class ClientController extends ClientUIView {
+public class ClientController extends ClientView {
 
     // Stores Booking ID for Update & Delete Operations
     private int bookingID;
@@ -58,9 +58,9 @@ public class ClientController extends ClientUIView {
     }
 
     /*
-     * Send Server Request with Class BackendRequest
+     * Send Server Request with Class Request
      */
-    private String serverRequest(BackendRequest request) {
+    private String serverRequest(Request request) {
         try {
             // Create New Socket on Port 5555
             Socket socket = new Socket("localhost", 5555);
@@ -126,15 +126,15 @@ public class ClientController extends ClientUIView {
     }
 
     /*
-     * Send Request to Server via BackendRequest Object, Handle & Process Responses
-     * in the Graphical User Interface
+     * Send Request to Server via Request Object, Handle & Process Responses in the
+     * Graphical User Interface
      */
-    private void serverSearchQuery(String command, int query) {
+    private void serverSearchQuery(String Request, int query) {
         // Clear Current Bookings Screen
         clearCurrentBookings();
 
         // Create Class for Client-Server Communication
-        BackendRequest request = new BackendRequest(command, query);
+        Request request = new Request(Request, query);
 
         // Retrieve String Information in Scanner Class
         String res = serverRequest(request);
@@ -147,11 +147,11 @@ public class ClientController extends ClientUIView {
      * Send Request to Server with Date based Query, Handle & Process Responses in
      * the Graphical User Interface
      */
-    private void serverSearchQueryDate(String command, Date query) {
+    private void serverSearchQueryDate(String Request, Date query) {
         // Clear Current Bookings Screen
         clearCurrentBookings();
         // Create Class for Client-Server Communication
-        BackendRequest request = new BackendRequest(command);
+        Request request = new Request(Request);
         // Save Date Information in Class
         request.saveDate(query);
         // Retrieve String Information in Scanner Class
@@ -347,14 +347,19 @@ public class ClientController extends ClientUIView {
     }
 
     /*
-     * Send Add Booking Command to Server with Required Details & Handle Responses
+     * Send Add Booking Request to Server with Required Details & Handle Responses
      */
     private void addBooking(ActionEvent event) {
         try {
+            // Populate Booking Fields from GUI
             populateBookingFields();
-            BackendRequest request = new BackendRequest("ADD");
+            // Create class for Client-Server Communication
+            Request request = new Request("ADD");
+            // Populate Class with Details
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
+            // Send Request to Server
             String response = serverRequest(request);
+            // Handle Response Conditionally
             actionStateHandler(response);
         } catch (IllegalArgumentException ex) {
             actionErrorAlert("Start Time & End Time mentioned is incorrect");
@@ -362,33 +367,44 @@ public class ClientController extends ClientUIView {
     }
 
     /*
-     * Send Update Booking Command to Server with Required Details & Handle
+     * Send Update Booking Request to Server with Required Details & Handle
      * Responses
      */
     private void updateBooking(ActionEvent event) {
         try {
+            // Populate Booking Fields from GUI
             populateBookingFields();
-            BackendRequest request = new BackendRequest("UPDATE", bookingID);
+            // Create class for Client-Server Communication
+            Request request = new Request("UPDATE", bookingID);
+            // Populate Class with Details
             request.setAdditionalData(clientID, PTID, date, startTime, endTime, focus);
+            // Send Request to Server
             String response = serverRequest(request);
+            // Handle Response Conditionally
             actionStateHandler(response);
         } catch (IllegalArgumentException ex) {
+            // Throw Error via Alert Box
             actionErrorAlert("Start Time & End Time mentioned is incorrect");
         }
     }
 
     /*
-     * Send Delete Booking Command to Server with Required Details & Handle
+     * Send Delete Booking Request to Server with Required Details & Handle
      * Responses
      */
     private void deleteBooking(ActionEvent event) {
         try {
+            // Populate Booking Fields from GUI
             populateBookingFields();
-            BackendRequest request = new BackendRequest("DELETE", bookingID);
+            // Create class for Client-Server Communication
+            Request request = new Request("DELETE", bookingID);
+            // Send Request to Server
             String response = serverRequest(request);
+            // Handle Response Conditionally
             actionStateHandler(response);
         } catch (Exception ex) {
-            // actionErrorAlert("Start Time & End Time mentioned is incorrect");
+            // Throw Error via Alert Box
+            actionErrorAlert("Error Deleting Booking");
         }
     }
 

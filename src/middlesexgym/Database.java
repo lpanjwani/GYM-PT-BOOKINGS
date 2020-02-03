@@ -15,18 +15,18 @@ import java.util.logging.Logger;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public class dbController {
+public class Database {
 
     private String connectionString = "jdbc:mysql://127.0.0.1:3306/GYM";
     private String username = "root";
     private String password = "example";
     private Connection dbConnection;
 
-    public dbController() {
+    public Database() {
         try {
             dbConnection = DriverManager.getConnection(connectionString, username, password);
         } catch (SQLException ex) {
-            Logger.getLogger(dbController.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

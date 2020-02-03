@@ -11,7 +11,7 @@ import javafx.stage.Stage;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public class MiddlesexGYM extends Application {
+public class GymClient extends Application {
 
     @Override
     public void start(Stage primaryStage) {

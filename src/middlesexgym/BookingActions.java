@@ -15,30 +15,48 @@ import java.util.concurrent.locks.ReentrantLock;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public class dbActions {
+public class BookingActions {
 
-    private final dbController db = new dbController();
+    // Contains JDBC Connection to the SQL Database
+    private final Database db = new Database();
+    // Lock Definition for allowing concurrency
     private final ReentrantLock lock = new ReentrantLock();
+    // Booking Conditional Lock
     private final Condition bookingCondition = lock.newCondition();
 
-    private ArrayList<String> bookingsDecode(ResultSet dbRes) throws SQLException {
-        ArrayList<String> bookings = new ArrayList<>();
+    /*
+     * Retrieve Booking Details from ResultSet to String
+     */
+    private String extractBookings(ResultSet dbRes) throws SQLException {
+        // Initialling Empty String
+        String bookings = "";
 
+        // Output All Bookings in String Separated by New Line
         while (dbRes.next()) {
-            String current = ("ID: " + dbRes.getInt("id"));
-            current += " Client: " + dbRes.getString("client");
-            current += " Trainer: " + dbRes.getString("trainer");
-            current += " Date: " + dbRes.getDate("date");
-            current += " Start Time: " + dbRes.getTime("startTime");
-            current += " End Time: " + dbRes.getTime("endTime");
-            current += " Focus: " + dbRes.getString("focus");
-            bookings.add(current);
+            // Output Booking ID
+            bookings += "ID: " + dbRes.getInt("id");
+            // Output Client Name
+            bookings += " Client: " + dbRes.getString("client");
+            // Output Trainer Name
+            bookings += " Trainer: " + dbRes.getString("trainer");
+            // Output Date
+            bookings += " Date: " + dbRes.getDate("date");
+            // Output Start Time
+            bookings += " Start Time: " + dbRes.getTime("startTime");
+            // Output End Time
+            bookings += " End Time: " + dbRes.getTime("endTime");
+            // Output Focus ID
+            bookings += " Focus: " + dbRes.getString("focus") + "\n";
         }
 
+        // Return Bookings String
         return bookings;
 
     }
 
+    /*
+     * Count Results
+     */
     private int resultCount(ResultSet dbRes) {
         try {
             dbRes.next();
@@ -48,6 +66,9 @@ public class dbActions {
         }
     }
 
+    /*
+     * Check if Clients, PT & Focus Entries are present in Database
+     */
     private String checkClientsPTExists(int clientID, int ptID) {
         int clientCount = resultCount(
                 db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.client WHERE id=" + clientID + ";"));
@@ -57,6 +78,10 @@ public class dbActions {
         int ptCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.staff WHERE id=" + ptID + ";"));
         if (ptCount < 1)
             return "Error - No Trainer with ID " + ptID + " Exists!";
+
+        int focusCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.focus WHERE id=" + ptID + ";"));
+        if (focusCount < 1)
+            return "Error - No Focus with ID " + ptID + " Exists!";
 
         return null;
     }
@@ -71,7 +96,10 @@ public class dbActions {
         }
     }
 
-    public ArrayList getBookings() throws SQLException {
+    /*
+     * Retrieve All Bookings from the Database
+     */
+    public String getAllBookings() throws SQLException {
         ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, '"
                 + " (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
                 + "bookings.date, bookings.startTime, bookings.endTime, "
@@ -80,12 +108,15 @@ public class dbActions {
                 + "INNER JOIN staff ON staff.id = bookings.trainer "
                 + "INNER JOIN focus ON focus.id = bookings.focus ORDER BY bookings.id DESC;");
 
-        ArrayList<String> bookings = bookingsDecode(dbRes);
+        String bookings = extractBookings(dbRes);
 
         return bookings;
     }
 
-    public ArrayList getBookingsByID(int id) throws SQLException {
+    /*
+     * Retrieve Bookings by Booking ID
+     */
+    public String getBookingsByID(int id) throws SQLException {
         ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name,' (ID ', client.id, ')') AS client, "
                 + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
                 + "bookings.date, bookings.startTime, bookings.endTime, "
@@ -94,12 +125,15 @@ public class dbActions {
                 + "ON staff.id = bookings.trainer INNER JOIN focus ON "
                 + "focus.id = bookings.focus WHERE bookings.id = " + id + " ORDER BY bookings.id DESC;");
 
-        ArrayList<String> bookings = bookingsDecode(dbRes);
+        String bookings = extractBookings(dbRes);
 
         return bookings;
     }
 
-    public ArrayList getBookingsByClient(int id) throws SQLException {
+    /*
+     * Retrieve Bookings for Client by ID
+     */
+    public String getBookingsByClient(int id) throws SQLException {
         ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
                 + "' (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
                 + "bookings.date, bookings.startTime, bookings.endTime, "
@@ -108,12 +142,15 @@ public class dbActions {
                 + "ON staff.id = bookings.trainer INNER JOIN focus ON " + "focus.id = bookings.focus WHERE client.id = "
                 + id + " ORDER BY bookings.id DESC;");
 
-        ArrayList<String> bookings = bookingsDecode(dbRes);
+        String bookings = extractBookings(dbRes);
 
         return bookings;
     }
 
-    public ArrayList getBookingsByPT(int id) throws SQLException {
+    /*
+     * Retrieve Bookings for Personal Trainer by ID
+     */
+    public String getBookingsByPT(int id) throws SQLException {
 
         ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
                 + "' (ID ', client.id, ')') AS client, " + "CONCAT(staff.name, ' (ID ', staff.id, ')') AS trainer, "
@@ -123,12 +160,15 @@ public class dbActions {
                 + "ON staff.id = bookings.trainer INNER JOIN focus ON " + "focus.id = bookings.focus WHERE staff.id = "
                 + id + " ORDER BY bookings.id DESC; ;");
 
-        ArrayList<String> bookings = bookingsDecode(dbRes);
+        String bookings = extractBookings(dbRes);
 
         return bookings;
     }
 
-    public ArrayList getBookingsByDate(Date date) throws SQLException {
+    /*
+     * Retrieve Bookings by Date
+     */
+    public String getBookingsByDate(Date date) throws SQLException {
         ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
                 + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
                 + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
@@ -138,13 +178,17 @@ public class dbActions {
                 + "INNER JOIN staff ON staff.id = bookings.trainer " + "INNER JOIN focus ON focus.id = bookings.focus "
                 + "WHERE DATE(bookings.date) = " + date + " ORDER BY bookings.id DESC;");
 
-        ArrayList<String> bookings = bookingsDecode(dbRes);
+        String bookings = extractBookings(dbRes);
 
         return bookings;
     }
 
-    public String newBooking(BackendRequest req) {
+    /*
+     * Create new Booking in Database
+     */
+    public String newBooking(Request req) {
         try {
+            // Acquire Lock so other threads cannot access the Database (Concurrency)
             lock.lock();
 
             String error = checkClientsPTExists(req.getClient(), req.getPT());
@@ -166,16 +210,19 @@ public class dbActions {
 
             return "Error - Booking Creation Error";
         } finally {
-            bookingCondition.signalAll();
+            // bookingCondition.signalAll();
             lock.unlock();
         }
     }
 
-    public String updateBooking(BackendRequest req) throws RuntimeException {
+    /*
+     * Update Existing Bookings in Database
+     */
+    public String updateBooking(Request req) throws RuntimeException {
         try {
             lock.lock();
 
-            bookingConditionAwait(req.getQuery());
+            // bookingConditionAwait(req.getQuery());
 
             String error = checkClientsPTExists(req.getClient(), req.getPT());
             if (error != null)
@@ -196,11 +243,14 @@ public class dbActions {
         }
     }
 
-    public String deleteBooking(BackendRequest req) {
+    /*
+     * Delete Existing Bookings
+     */
+    public String deleteBooking(Request req) {
         try {
             lock.lock();
 
-            bookingConditionAwait(req.getQuery());
+            // bookingConditionAwait(req.getQuery());
 
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)

@@ -13,7 +13,7 @@ import java.sql.Time;
  * 
  * @author Lavesh Panjwani (M00692913)
  */
-public class BackendRequest implements Serializable {
+public class Request implements Serializable {
 
     // Request Command to be Processed by the Server such as LISTALL
     private final String command;
@@ -31,14 +31,14 @@ public class BackendRequest implements Serializable {
     /*
      * Constructor with Basic Command Details
      */
-    public BackendRequest(String command) {
+    public Request(String command) {
         this.command = command;
     }
 
     /*
      * Constructor with Command & Additional Requirements for Server
      */
-    public BackendRequest(String command, int queryID) {
+    public Request(String command, int queryID) {
         this.command = command;
         this.query = queryID;
     }
