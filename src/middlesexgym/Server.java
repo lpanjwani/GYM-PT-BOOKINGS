@@ -80,62 +80,64 @@ class ClientRequest implements Runnable {
             // Create Output Stream
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            // Receive Request & Other Additional for Processing
-            Request req = (Request) in.readObject();
-            // Initialize String for Output
-            String response = "";
+            while (true) {
+                // Receive Request & Other Additional for Processing
+                Request req = (Request) in.readObject();
+                // Initialize String for Output
+                String response = "";
 
-            // Conditional Routing based on Command Requested
-            switch (req.getCommand()) {
-            // List All Bookings
-            case "LISTALL":
-                response = actions.getAllBookings();
-                break;
-            // List Bookings by ID
-            case "LISTID":
-                response = actions.getBookingsByID(req.getQuery());
-                break;
-            // List Bookings for Personal Trainer
-            case "LISTPT":
-                response = actions.getBookingsByPT(req.getQuery());
-                break;
-            // List Booking for Client
-            case "LISTCLIENT":
-                response = actions.getBookingsByClient(req.getQuery());
-                break;
-            // List Booking for Specific Day
-            case "LISTDAY":
-                response = actions.getBookingsByDate(req.getDate());
-                break;
-            // Create New Booking
-            case "ADD":
-                response = actions.newBooking(req);
-                break;
-            // Update Existing Bookings
-            case "UPDATE":
-                response = actions.updateBooking(req);
-                break;
-            // Delete Existing Bookings
-            case "DELETE":
-                response = actions.deleteBooking(req);
-                break;
+                // Conditional Routing based on Command Requested
+                switch (req.getCommand()) {
+                // List All Bookings
+                case "LISTALL":
+                    response = actions.getAllBookings();
+                    break;
+                // List Bookings by ID
+                case "LISTID":
+                    response = actions.getBookingsByID(req.getQuery());
+                    break;
+                // List Bookings for Personal Trainer
+                case "LISTPT":
+                    response = actions.getBookingsByPT(req.getQuery());
+                    break;
+                // List Booking for Client
+                case "LISTCLIENT":
+                    response = actions.getBookingsByClient(req.getQuery());
+                    break;
+                // List Booking for Specific Day
+                case "LISTDAY":
+                    response = actions.getBookingsByDate(req.getDate());
+                    break;
+                // Create New Booking
+                case "ADD":
+                    response = actions.newBooking(req);
+                    break;
+                // Update Existing Bookings
+                case "UPDATE":
+                    response = actions.updateBooking(req);
+                    break;
+                // Delete Existing Bookings
+                case "DELETE":
+                    response = actions.deleteBooking(req);
+                    break;
+                }
+
+                // Send String Based Response to Server
+                out.println(response);
             }
 
-            // Send String Based Response to Server
-            out.println(response);
-
-            // Close Input Stream to free up resources
-            in.close();
-            // Close Output Stream to free up resources
-            out.close();
-            // Close Socket to free up resources
-            socket.close();
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                // Close Input Stream to free up resources
+                in.close();
+                // Close Output Stream to free up resources
+                out.close();
+                // Close Socket to free up resources
+                socket.close();
+            } catch (Exception exp) {
+
+            }
         }
     }
 }

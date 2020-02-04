@@ -195,12 +195,13 @@ public class BookingActions {
             if (error != null)
                 return error;
 
-            int result = db.runUpdate("INSERT INTO GYM.bookings (`client`,"
-                    + "`trainer`,`date`,`startTime`,`endTime`,`focus`) " + "SELECT '" + req.getClient() + "', '"
-                    + req.getPT() + "'," + " '" + req.getDate() + "', '" + req.getStartTime() + "'," + " '"
-                    + req.getEndTime() + "', '" + req.getFocus() + "' " + "FROM DUAL "
-                    + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
-                    + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime() + "' );");
+            int result = db.runUpdate(
+                    "INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
+                            + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
+                            + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "' "
+                            + "FROM DUAL " + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
+                            + req.getDate() + "'" + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
+                            + req.getEndTime() + " AND PT = " + req.getPT() + "' );");
 
             if (result == 0) {
                 return "Error - Conflicting Booking Exists";
@@ -249,8 +250,6 @@ public class BookingActions {
     public String deleteBooking(Request req) {
         try {
             lock.lock();
-
-            // bookingConditionAwait(req.getQuery());
 
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)

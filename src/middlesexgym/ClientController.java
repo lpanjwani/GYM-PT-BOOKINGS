@@ -6,13 +6,17 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.Optional;
 import java.util.Scanner;
+
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.Alert;
+import javafx.scene.control.DateCell;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
 
@@ -23,6 +27,12 @@ import javafx.scene.control.TextInputDialog;
  * @author Lavesh Panjwani (M00692913)
  */
 public class ClientController extends ClientView {
+
+    // Indicates the Connection State
+    private boolean connectionState = false;
+    private Socket socket;
+    private ObjectOutputStream os;
+    private Scanner in;
 
     // Stores Booking ID for Update & Delete Operations
     private int bookingID;
@@ -54,7 +64,13 @@ public class ClientController extends ClientView {
         createUpdateButton.setOnAction(this::updateBooking);
         createDeleteButton.setOnAction(this::deleteBooking);
 
-	createDateSelect.setValue(LocalDate.now());
+        // Connection State Button
+        currentConnect.setOnAction(this::serverConnectButton);
+        currentDisconnect.setOnAction(this::serverDisconnect);
+        currentDisconnect.setVisible(false);
+
+        // Add Date Time Restrictions
+        addDateTimeRestrictions();
 
         // Query Server for All Current Bookings
         queryCurrentBookings();
@@ -65,12 +81,20 @@ public class ClientController extends ClientView {
      */
     private String serverRequest(Request request) {
         try {
-            // Create New Socket on Port 5555
-            Socket socket = new Socket("localhost", 5555);
-            // Create Object Output Stream for Client-Server Communication
-            ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
-            // Create Scanner Input Class for Server-Client Communication
-            Scanner in = new Scanner(socket.getInputStream());
+            // Create New Connection if not connected
+            if (!connectionState) {
+                // Create New Socket on Port 5555
+                socket = new Socket("localhost", 5555);
+                // Create Object Output Stream for Client-Server Communication
+                os = new ObjectOutputStream(socket.getOutputStream());
+                // Create Scanner Input Class for Server-Client Communication
+                in = new Scanner(socket.getInputStream());
+
+                // Indicate Connection State
+                connectionState = true;
+                currentConnect.setVisible(false);
+                currentDisconnect.setVisible(true);
+            }
 
             // Send Object to Server for Requests Standardization
             os.writeObject(request);
@@ -83,13 +107,6 @@ public class ClientController extends ClientView {
                 message += in.nextLine() + "\n";
             }
 
-            // Close Output Stream to free up resources
-            os.close();
-            // Close Input Stream to free up resources
-            in.close();
-            // Close Connection with Server to free up server buffers
-            socket.close();
-
             // Return Message
             return message;
         } catch (IOException ex) {
@@ -97,6 +114,37 @@ public class ClientController extends ClientView {
         }
 
         return null;
+    }
+
+    /*
+     * init Connection to Server Button Action
+     */
+    private void serverConnectButton(ActionEvent event) {
+        currentConnect.setVisible(false);
+        currentDisconnect.setVisible(true);
+        queryCurrentBookings();
+    }
+
+    /*
+     * Disconnect Connection to Server
+     */
+    private void serverDisconnect(ActionEvent event) {
+        try {
+            // Indicate Connection State
+            connectionState = false;
+            currentConnect.setVisible(true);
+            currentDisconnect.setVisible(false);
+
+            // Close Output Stream to free up resources
+            os.close();
+            // Close Input Stream to free up resources
+            in.close();
+            // Close Connection with Server to free up server buffers
+            socket.close();
+
+        } catch (IOException ex) {
+            actionErrorAlert("I faced some connection issues. Do we have an active network working?");
+        }
     }
 
     /*
@@ -110,18 +158,75 @@ public class ClientController extends ClientView {
         // Retrieve Date from GUI Input Field
         date = Date.valueOf(createDateSelect.getValue());
         // Retrieve Start Time from GUI Input Field
-        startTime = Time.valueOf(createStartTimeText.getText() + ":00");
+        startTime = Time.valueOf(createStartHours.getSelectionModel().getSelectedItem().toString() + ":"
+                + createStartMinutes.getSelectionModel().getSelectedItem().toString() + ":00");
         // Retrieve End Time from GUI Input Field
-        endTime = Time.valueOf(createEndTimeText.getText() + ":00");
+        endTime = Time.valueOf(createEndHours.getSelectionModel().getSelectedItem().toString() + ":"
+                + createEndMinutes.getSelectionModel().getSelectedItem().toString() + ":00");
         // Retrieve Focus ID from GUI Input Field
         focus = Integer.parseInt((createFocusText.getText()));
 
-        // Compare Start Time & End Time for Verification
+        // Create Current Date & Time Information for Selection Comparison
+        LocalDate localDate = LocalDate.now();
+        LocalTime localTime = LocalTime.now();
+
+        // Compare Current Date Time vs Selected to verify bookings are not in the past
+        if (Date.valueOf(localDate).equals(date)) {
+            if (Integer.parseInt(createStartHours.getSelectionModel().getSelectedItem().toString()) <= localTime
+                    .getHour()
+                    || Integer.parseInt(createEndHours.getSelectionModel().getSelectedItem().toString()) <= localTime
+                            .getHour())
+                if (Integer.parseInt(createStartMinutes.getSelectionModel().getSelectedItem().toString()) < localTime
+                        .getMinute()
+                        || Integer.parseInt(createEndMinutes.getSelectionModel().getSelectedItem()
+                                .toString()) < localTime.getMinute())
+                    throw new IllegalArgumentException();
+        }
+
+        // Compare Difference between Start Time & End Time for Verification
         int diff = endTime.compareTo(startTime);
         // Throw Error if Time is incorrect
         if (diff < 0 || diff == 0) {
             // Throw Illegal Argument
             throw new IllegalArgumentException();
+        }
+
+    }
+
+    /*
+     * Include Date & Time Restrictions to disallow Previous Days
+     */
+    private void addDateTimeRestrictions() {
+
+        // Date Restrictions to stop past dates bookings
+        createDateSelect.setValue(LocalDate.now());
+        createDateSelect.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                LocalDate today = LocalDate.now();
+
+                setDisable(empty || date.compareTo(today) < 0);
+            }
+        });
+
+        // Link Hours Fields
+        ObservableList startHour = createStartHours.getItems();
+        ObservableList endHour = createEndHours.getItems();
+
+        // Create Hour Entries in Fields
+        for (int i = 7; i < 24; i++) {
+            startHour.add(i);
+            endHour.add(i);
+        }
+
+        // Link Minutes Fields
+        ObservableList startMin = createStartMinutes.getItems();
+        ObservableList endMin = createEndMinutes.getItems();
+
+        // Create Minute Entries
+        for (int i = 0; i < 60; i += 15) {
+            startMin.add(i);
+            endMin.add(i);
         }
 
     }
@@ -366,7 +471,7 @@ public class ClientController extends ClientView {
             // Handle Response Conditionally
             actionStateHandler(response);
         } catch (IllegalArgumentException ex) {
-            actionErrorAlert("Start Time & End Time mentioned is incorrect");
+            actionErrorAlert("Start Time & End Time entered is incorrect");
         }
     }
 
