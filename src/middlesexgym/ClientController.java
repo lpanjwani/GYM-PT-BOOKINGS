@@ -23,14 +23,13 @@ import javafx.scene.control.TextInputDialog;
 /**
  * This class deals with handling & controlling User Interface components and
  * Server
- * 
+ *
  * @author Lavesh Panjwani (M00692913)
  */
 public class ClientController extends ClientView {
 
-    // Indicates the Connection State
-    private boolean connectionState = false;
-    private Socket socket;
+    // Indicates the Connection State & Streams
+    private Socket socket = null;
     private ObjectOutputStream os;
     private Scanner in;
 
@@ -82,19 +81,17 @@ public class ClientController extends ClientView {
     private String serverRequest(Request request) {
         try {
             // Create New Connection if not connected
-            if (!connectionState) {
+            if (socket == null || socket.isClosed()) {
                 // Create New Socket on Port 5555
                 socket = new Socket("localhost", 5555);
                 // Create Object Output Stream for Client-Server Communication
                 os = new ObjectOutputStream(socket.getOutputStream());
                 // Create Scanner Input Class for Server-Client Communication
                 in = new Scanner(socket.getInputStream());
-
-                // Indicate Connection State
-                connectionState = true;
-                currentConnect.setVisible(false);
-                currentDisconnect.setVisible(true);
             }
+            // Indicate Connection State
+            currentConnect.setVisible(false);
+            currentDisconnect.setVisible(true);
 
             // Send Object to Server for Requests Standardization
             os.writeObject(request);
@@ -104,7 +101,10 @@ public class ClientController extends ClientView {
             // Print All String Information in String
             while (in.hasNext()) {
                 // Retrieve String Message
-                message += in.nextLine() + "\n";
+                String temp = in.nextLine();
+                if (temp.contains("END"))
+                    break;
+                message += temp + "\n";
             }
 
             // Return Message
@@ -131,7 +131,6 @@ public class ClientController extends ClientView {
     private void serverDisconnect(ActionEvent event) {
         try {
             // Indicate Connection State
-            connectionState = false;
             currentConnect.setVisible(true);
             currentDisconnect.setVisible(false);
 
@@ -175,12 +174,14 @@ public class ClientController extends ClientView {
             if (Integer.parseInt(createStartHours.getSelectionModel().getSelectedItem().toString()) <= localTime
                     .getHour()
                     || Integer.parseInt(createEndHours.getSelectionModel().getSelectedItem().toString()) <= localTime
-                            .getHour())
+                            .getHour()) {
                 if (Integer.parseInt(createStartMinutes.getSelectionModel().getSelectedItem().toString()) < localTime
                         .getMinute()
                         || Integer.parseInt(createEndMinutes.getSelectionModel().getSelectedItem()
-                                .toString()) < localTime.getMinute())
+                                .toString()) < localTime.getMinute()) {
                     throw new IllegalArgumentException();
+                }
+            }
         }
 
         // Compare Difference between Start Time & End Time for Verification

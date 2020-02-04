@@ -123,7 +123,7 @@ class ClientRequest implements Runnable {
                 }
 
                 // Send String Based Response to Server
-                out.println(response);
+                out.println(response + "\nEND");
             }
 
         } catch (Exception ex) {
