@@ -5,6 +5,7 @@ package middlesexgym;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.time.LocalDate;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.Optional;
@@ -52,6 +53,8 @@ public class ClientController extends ClientView {
         createBookingButton.setOnAction(this::addBooking);
         createUpdateButton.setOnAction(this::updateBooking);
         createDeleteButton.setOnAction(this::deleteBooking);
+
+	createDateSelect.setValue(LocalDate.now());
 
         // Query Server for All Current Bookings
         queryCurrentBookings();

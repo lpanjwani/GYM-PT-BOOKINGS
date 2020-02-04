@@ -19,7 +19,7 @@ public class Database {
 
     private String connectionString = "jdbc:mysql://127.0.0.1:3306/GYM";
     private String username = "root";
-    private String password = "example";
+    private String password = "";
     private Connection dbConnection;
 
     public Database() {
