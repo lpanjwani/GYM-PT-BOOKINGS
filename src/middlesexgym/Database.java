@@ -17,10 +17,10 @@ import java.util.logging.Logger;
  */
 public class Database {
 
-    // private String connectionString = "jdbc:mysql://127.0.0.1:3306/GYM";
-    private String connectionString = "jdbc:mysql://160.153.129.20:3306/GYM";
-    private String username = "gymaccess";
-    private String password = "12345";
+    private String connectionString = "jdbc:mysql://127.0.0.1:3306/GYM";
+    // private String connectionString = "jdbc:mysql://160.153.129.20:3306/GYM";
+    private String username = "root";
+    private String password = "";
     private Connection dbConnection;
 
     public Database() {

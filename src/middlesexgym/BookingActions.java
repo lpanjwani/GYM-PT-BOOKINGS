@@ -197,10 +197,10 @@ public class BookingActions {
             int result = db.runUpdate(
                     "INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
                             + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
-                            + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "' "
-                            + " WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
-                            + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
-                            + " AND PT = " + req.getPT() + "' );");
+                            + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
+                            + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
+                            + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
+                            + "' AND PT = " + req.getPT() + "' );");
 
             if (result == 0) {
                 return "Error - Conflicting Booking Exists";
