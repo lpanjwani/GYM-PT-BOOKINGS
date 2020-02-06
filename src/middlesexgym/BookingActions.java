@@ -181,7 +181,7 @@ public class BookingActions {
                         + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
                         + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate()
                         + "'" + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
-			   + "' AND trainer = '" + req.getPT() + "' );");
+                        + "' AND trainer = '" + req.getPT() + "' );");
 
         if (result == 0) {
             return "Error - Conflicting Booking Exists";
@@ -204,8 +204,8 @@ public class BookingActions {
             int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
                     + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
-                    + " AND NOT EXISTS(SELECT * FROM GYM.bookings WHERE endTime > " + req.getStartTime()
-                    + " AND startTime < " + req.getStartTime() + ");");
+                    + " AND NOT EXISTS(SELECT * FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
+                    + "' AND startTime < '" + req.getStartTime() + "');");
 
             if (result == 1)
                 return "Success - Booking Successfully Updated";
