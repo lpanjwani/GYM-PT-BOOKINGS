@@ -157,6 +157,7 @@ public class ClientController extends ClientView {
         PTID = Integer.parseInt((createPTSelect.getText()));
         // Retrieve Date from GUI Input Field
         date = Date.valueOf(createDateSelect.getValue());
+        System.out.println(date);
         // Retrieve Start Time from GUI Input Field
         startTime = Time.valueOf(createStartHours.getSelectionModel().getSelectedItem().toString() + ":"
                 + createStartMinutes.getSelectionModel().getSelectedItem().toString() + ":00");
@@ -175,7 +176,7 @@ public class ClientController extends ClientView {
             if (Integer.parseInt(createStartHours.getSelectionModel().getSelectedItem().toString()) <= localTime
                     .getHour()
                     || Integer.parseInt(createEndHours.getSelectionModel().getSelectedItem().toString()) <= localTime
-                    .getHour()) {
+                            .getHour()) {
                 if (Integer.parseInt(createStartMinutes.getSelectionModel().getSelectedItem().toString()) < localTime
                         .getMinute()
                         || Integer.parseInt(createEndMinutes.getSelectionModel().getSelectedItem()
@@ -246,12 +247,12 @@ public class ClientController extends ClientView {
      * Send Request to Server via Request Object, Handle & Process Responses in the
      * Graphical User Interface
      */
-    private void serverSearchQuery(String Request, int query) {
+    private void serverSearchQuery(String command, int query) {
         // Clear Current Bookings Screen
         clearCurrentBookings();
 
         // Create Class for Client-Server Communication
-        Request request = new Request(Request, query);
+        Request request = new Request(command, query);
 
         // Retrieve String Information in Scanner Class
         String res = serverRequest(request);
@@ -264,18 +265,18 @@ public class ClientController extends ClientView {
      * Send Request to Server with Date based Query, Handle & Process Responses in
      * the Graphical User Interface
      */
-    private void serverSearchQueryDate(String Request, Date query) {
+    private void serverSearchQueryDate(String command, Date query) {
         // Clear Current Bookings Screen
-        clearCurrentBookings();
+        // clearCurrentBookings();
         // Create Class for Client-Server Communication
-        Request request = new Request(Request);
+        Request request = new Request(command);
         // Save Date Information in Class
         request.saveDate(query);
         // Retrieve String Information in Scanner Class
         String res = serverRequest(request);
 
         // Output Response in Main Text Area
-        mainTextArea.setText(mainTextArea.getText() + res + "\n");
+        mainTextArea.setText(res + "\n");
     }
 
     /*

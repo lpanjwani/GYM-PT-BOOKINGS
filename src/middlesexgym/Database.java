@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class deals with Database Connections & Native Java Management
@@ -18,10 +19,12 @@ import java.util.logging.Logger;
 public class Database {
 
     private String connectionString = "jdbc:mysql://127.0.0.1:3306/GYM";
-    // private String connectionString = "jdbc:mysql://160.153.129.20:3306/GYM";
     private String username = "root";
     private String password = "";
     private Connection dbConnection;
+
+    // Lock Definition for allowing concurrency
+    private final ReentrantLock lock = new ReentrantLock();
 
     public Database() {
         try {
@@ -33,30 +36,38 @@ public class Database {
 
     public ResultSet runQuery(String sqlQuery) {
         try {
+            // Acquire Lock so other threads cannot access the Database (Concurrency)
+            lock.lock();
+
             PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlQuery);
-            // ... add parameters to the SQL query using PreparedStatement methods:
-            // setInt, setString, etc.
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet;
         } catch (SQLException e) {
-            // ... handle SQL exception
-            // Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
+            // Handle SQL exception
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
+        } finally {
+            // Remove Lock so other threads can access the Database (Concurrency)
+            lock.unlock();
         }
         return null;
     }
 
     public int runUpdate(String sqlQuery) {
         try {
+            // Acquire Lock so other threads cannot access the Database (Concurrency)
+            lock.lock();
+
             PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlQuery);
-            // ... add parameters to the SQL query using PreparedStatement methods:
-            // setInt, setString, etc.
             int result = preparedStatement.executeUpdate();
 
             return result;
         } catch (SQLException e) {
-            // ... handle SQL exception
+            // Handle SQL exception
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
+        } finally {
+            // Remove Lock so other threads can access the Database (Concurrency)
+            lock.unlock();
         }
         return 2;
     }

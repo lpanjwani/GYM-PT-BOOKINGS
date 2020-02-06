@@ -5,7 +5,6 @@ package middlesexgym;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -18,10 +17,6 @@ public class BookingActions {
 
     // Contains JDBC Connection to the SQL Database
     private final Database db = new Database();
-    // Lock Definition for allowing concurrency
-    private final ReentrantLock lock = new ReentrantLock();
-    // Booking Conditional Lock
-    private final Condition bookingCondition = lock.newCondition();
 
     /*
      * Retrieve Booking Details from ResultSet to String
@@ -74,7 +69,7 @@ public class BookingActions {
         if (clientCount < 1)
             return "Error - No Client with ID " + clientID + " Exists!";
 
-        int ptCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.staff WHERE id=" + ptID + ";"));
+        int ptCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.trainer WHERE id=" + ptID + ";"));
         if (ptCount < 1)
             return "Error - No Trainer with ID " + ptID + " Exists!";
 
@@ -83,16 +78,6 @@ public class BookingActions {
             return "Error - No Focus with ID " + focusID + " Exists!";
 
         return null;
-    }
-
-    private void bookingConditionAwait(int query) throws RuntimeException {
-        if (resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.bookings WHERE id=" + query + ";")) < 1) {
-            try {
-                bookingCondition.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     /*
@@ -168,18 +153,21 @@ public class BookingActions {
      * Retrieve Bookings by Date
      */
     public String getBookingsByDate(Date date) throws SQLException {
-        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
-                + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
-                + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
-                + "bookings.startTime, bookings.endTime, CONCAT(focus.name, "
-                + "' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
-                + "INNER JOIN client ON client.id = bookings.client "
-                + "INNER JOIN staff ON staff.id = bookings.trainer " + "INNER JOIN focus ON focus.id = bookings.focus "
-                + "WHERE DATE(bookings.date) = " + date + " ORDER BY bookings.id DESC;");
+        try {
+            ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
+                    + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
+                    + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
+                    + "bookings.startTime, bookings.endTime, CONCAT(focus.name, "
+                    + "' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
+                    + "INNER JOIN client ON client.id = bookings.client "
+                    + "INNER JOIN staff ON staff.id = bookings.trainer "
+                    + "INNER JOIN focus ON focus.id = bookings.focus " + "WHERE DATE(bookings.date) = " + date
+                    + " ORDER BY bookings.id DESC;");
 
-        String bookings = extractBookings(dbRes);
+            String bookings = extractBookings(dbRes);
 
-        return bookings;
+            return bookings;
+        } 
     }
 
     /*
@@ -187,9 +175,6 @@ public class BookingActions {
      */
     public String newBooking(Request req) {
         try {
-            // Acquire Lock so other threads cannot access the Database (Concurrency)
-            lock.lock();
-
             String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
             if (error != null)
                 return error;
@@ -198,9 +183,9 @@ public class BookingActions {
                     "INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
                             + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
                             + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
-                            + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
-                            + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
-                            + "' AND PT = " + req.getPT() + "' );");
+                            + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
+                            + req.getDate() + "'" + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
+                            + req.getEndTime() + "' AND PT = " + req.getPT() + "' );");
 
             if (result == 0) {
                 return "Error - Conflicting Booking Exists";
@@ -209,10 +194,7 @@ public class BookingActions {
             }
 
             return "Error - Booking Creation Error";
-        } finally {
-            // bookingCondition.signalAll();
-            lock.unlock();
-        }
+        } 
     }
 
     /*
@@ -220,10 +202,6 @@ public class BookingActions {
      */
     public String updateBooking(Request req) throws RuntimeException {
         try {
-            lock.lock();
-
-            // bookingConditionAwait(req.getQuery());
-
             String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
             if (error != null)
                 return error;
@@ -240,8 +218,6 @@ public class BookingActions {
             return "Error - Booking Updating Error";
         } catch (RuntimeException ex) {
             return "Error - Booking Deleting Error";
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -250,7 +226,6 @@ public class BookingActions {
      */
     public String deleteBooking(Request req) {
         try {
-            lock.lock();
 
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)
@@ -259,8 +234,6 @@ public class BookingActions {
             return "Error - Booking Deleting Error";
         } catch (RuntimeException ex) {
             return "Error - Booking Deleting Error";
-        } finally {
-            lock.unlock();
         }
     }
 

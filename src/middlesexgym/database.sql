@@ -118,6 +118,15 @@ VALUES
    ('7', 'Helga Levesque');
 
 INSERT INTO
+   GYM.trainer (`id`, `speciality`)
+VALUES
+   ('1'),
+   ('2'),
+   ('4'),
+   ('5'),
+   ('7');
+
+INSERT INTO
    GYM.focus (`id`, `name`)
 VALUES
    ('1', 'Chest'),
