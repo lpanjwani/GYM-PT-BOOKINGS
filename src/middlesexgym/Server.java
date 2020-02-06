@@ -7,7 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -83,47 +82,43 @@ class ClientRequest implements Runnable {
             while (true) {
                 // Receive Request & Other Additional for Processing
                 Request req = (Request) in.readObject();
-                // Initialize String for Output
-                String response = "";
 
                 // Conditional Routing based on Command Requested
                 switch (req.getCommand()) {
                 // List All Bookings
                 case "LISTALL":
-                    response = actions.getAllBookings();
+                    sendString(actions.getAllBookings());
                     break;
                 // List Bookings by ID
                 case "LISTID":
-                    response = actions.getBookingsByID(req.getQuery());
+                    sendString(actions.getBookingsByID(req.getQuery()));
                     break;
                 // List Bookings for Personal Trainer
                 case "LISTPT":
-                    response = actions.getBookingsByPT(req.getQuery());
+                    sendString(actions.getBookingsByPT(req.getQuery()));
                     break;
                 // List Booking for Client
                 case "LISTCLIENT":
-                    response = actions.getBookingsByClient(req.getQuery());
+                    sendString(actions.getBookingsByClient(req.getQuery()));
                     break;
                 // List Booking for Specific Day
                 case "LISTDAY":
-                    response = actions.getBookingsByDate(req.getDate());
+                    sendString(actions.getBookingsByDate(req.getDate()));
                     break;
                 // Create New Booking
                 case "ADD":
-                    response = actions.newBooking(req);
+                    sendString(actions.newBooking(req));
                     break;
                 // Update Existing Bookings
                 case "UPDATE":
-                    response = actions.updateBooking(req);
+                    sendString(actions.updateBooking(req));
                     break;
                 // Delete Existing Bookings
                 case "DELETE":
-                    response = actions.deleteBooking(req);
+                    sendString(actions.deleteBooking(req));
                     break;
                 }
 
-                // Send String Based Response to Server
-                out.println(response + "\nEND");
             }
 
         } catch (Exception ex) {
@@ -139,5 +134,10 @@ class ClientRequest implements Runnable {
 
             }
         }
+    }
+
+    private void sendString(String response) {
+        // Send String Based Response to Server
+        out.println(response + "\nEND");
     }
 }
