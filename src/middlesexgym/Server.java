@@ -7,6 +7,9 @@ import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.sql.Time;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +26,10 @@ public class Server {
 
     public static void main(String[] args) {
         try {
+
+            if (args.length > 0)
+                new CommandLineRequest(args);
+
             // Start Server
             ServerSocket ss = new ServerSocket(port);
 
@@ -47,6 +54,76 @@ public class Server {
         }
     }
 
+}
+
+/**
+ * This class handles Conditional Routing of CLI Command & redirects
+ * accordingly.
+ *
+ * @author Lavesh Panjwani (M00692913)
+ */
+class CommandLineRequest {
+
+    CommandLineRequest(String[] args) {
+        try {
+            BookingActions actions = new BookingActions();
+            Request req = new Request("ADD");
+
+            // Conditional Routing based on Command Requested
+            switch (args[0]) {
+            // List All Bookings
+            case "LISTALL":
+                printString(actions.getAllBookings());
+                break;
+            // List Bookings by ID
+            case "LISTID":
+                printString(actions.getBookingsByID(Integer.parseInt(args[1])));
+                break;
+            // List Bookings for Personal Trainer
+            case "LISTPT":
+                printString(actions.getBookingsByPT(Integer.parseInt(args[1])));
+                break;
+            // List Booking for Client
+            case "LISTCLIENT":
+                printString(actions.getBookingsByClient(Integer.parseInt(args[1])));
+                break;
+            // List Booking for Specific Day
+            case "LISTDAY":
+                printString(actions.getBookingsByDate(Date.valueOf(args[1])));
+                break;
+            // Create New Booking
+            case "ADD":
+                req.setAdditionalData(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Date.valueOf(args[3]),
+                        Time.valueOf(args[4]), Time.valueOf(args[5]), Integer.parseInt(args[6]));
+                printString(actions.newBooking(req));
+                break;
+            // Update Existing Bookings
+            case "UPDATE":
+                req = new Request("UPDATE");
+                req.setAdditionalData(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Date.valueOf(args[3]),
+                        Time.valueOf(args[4]), Time.valueOf(args[5]), Integer.parseInt(args[6]));
+                printString(actions.updateBooking(req));
+                break;
+            // Delete Existing Bookings
+            case "DELETE":
+                req = new Request("DELETE");
+                req.setAdditionalData(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Date.valueOf(args[3]),
+                        Time.valueOf(args[4]), Time.valueOf(args[5]), Integer.parseInt(args[6]));
+                printString(actions.deleteBooking(req));
+                break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void printString(String response) {
+        // Send String Based Response to CLI Output
+        System.out.println(response);
+
+        // Exit Application
+        System.exit(0);
+    }
 }
 
 /**
@@ -122,7 +199,7 @@ class ClientRequest implements Runnable {
             }
 
         } catch (Exception ex) {
-            Logger.getLogger(ClientRequest.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             try {
                 // Close Input Stream to free up resources
                 in.close();
@@ -137,7 +214,7 @@ class ClientRequest implements Runnable {
     }
 
     private void sendString(String response) {
-        // Send String Based Response to Server
+        // Send String Based Response to Client
         out.println(response + "\nEND");
     }
 }
