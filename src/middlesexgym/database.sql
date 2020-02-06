@@ -120,11 +120,11 @@ VALUES
 INSERT INTO
    GYM.trainer (`id`, `speciality`)
 VALUES
-   ('1'),
-   ('2'),
-   ('4'),
-   ('5'),
-   ('7');
+   ('1', '2'),
+   ('2', '7'),
+   ('4', '1'),
+   ('5', '6'),
+   ('7', '3');
 
 INSERT INTO
    GYM.focus (`id`, `name`)
