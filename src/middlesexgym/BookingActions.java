@@ -204,8 +204,8 @@ public class BookingActions {
             int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
                     + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
-                    + " AND NOT EXISTS(SELECT * FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
-                    + "' AND startTime < '" + req.getStartTime() + "');");
+                    + " AND NOT EXISTS(SELECT id FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
+                    + "' AND startTime < '" + req.getStartTime() + " AND NOT id = " + req.getQuery() + ");");
 
             if (result == 1)
                 return "Success - Booking Successfully Updated";
