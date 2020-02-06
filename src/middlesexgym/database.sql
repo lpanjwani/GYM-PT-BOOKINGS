@@ -1,7 +1,5 @@
 DROP DATABASE IF EXISTS GYM;
-
 CREATE DATABASE GYM;
-
 USE GYM;
 
 CREATE TABLE client (
@@ -116,15 +114,6 @@ VALUES
    ('5', 'Pauline Sasse'),
    ('6', 'Joyce Tapia'),
    ('7', 'Helga Levesque');
-
-INSERT INTO
-   GYM.trainer (`id`, `speciality`)
-VALUES
-   ('1', '2'),
-   ('2', '7'),
-   ('4', '1'),
-   ('5', '6'),
-   ('7', '3');
 
 INSERT INTO
    GYM.focus (`id`, `name`)
