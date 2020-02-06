@@ -181,7 +181,7 @@ public class BookingActions {
                         + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
                         + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate()
                         + "'" + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
-                        + "' AND PT = " + req.getPT() + "' );");
+			   + "' AND trainer = '" + req.getPT() + "' );");
 
         if (result == 0) {
             return "Error - Conflicting Booking Exists";
