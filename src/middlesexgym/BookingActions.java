@@ -153,48 +153,43 @@ public class BookingActions {
      * Retrieve Bookings by Date
      */
     public String getBookingsByDate(Date date) throws SQLException {
-        try {
-            ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
-                    + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
-                    + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
-                    + "bookings.startTime, bookings.endTime, CONCAT(focus.name, "
-                    + "' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
-                    + "INNER JOIN client ON client.id = bookings.client "
-                    + "INNER JOIN staff ON staff.id = bookings.trainer "
-                    + "INNER JOIN focus ON focus.id = bookings.focus " + "WHERE DATE(bookings.date) = " + date
-                    + " ORDER BY bookings.id DESC;");
+        ResultSet dbRes = db.runQuery("SELECT bookings.id, CONCAT(client.name, "
+                + "' (ID ', client.id, ')') AS client, CONCAT(staff.name, "
+                + "' (ID ', staff.id, ')') AS trainer, bookings.date, "
+                + "bookings.startTime, bookings.endTime, CONCAT(focus.name, "
+                + "' (ID ', focus.id, ')') AS focus FROM GYM.bookings "
+                + "INNER JOIN client ON client.id = bookings.client "
+                + "INNER JOIN staff ON staff.id = bookings.trainer " + "INNER JOIN focus ON focus.id = bookings.focus "
+                + "WHERE DATE(bookings.date) = " + date + " ORDER BY bookings.id DESC;");
 
-            String bookings = extractBookings(dbRes);
+        String bookings = extractBookings(dbRes);
 
-            return bookings;
-        } 
+        return bookings;
     }
 
     /*
      * Create new Booking in Database
      */
     public String newBooking(Request req) {
-        try {
-            String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
-            if (error != null)
-                return error;
+        String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
+        if (error != null)
+            return error;
 
-            int result = db.runUpdate(
-                    "INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
-                            + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
-                            + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
-                            + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
-                            + req.getDate() + "'" + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
-                            + req.getEndTime() + "' AND PT = " + req.getPT() + "' );");
+        int result = db
+                .runUpdate("INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
+                        + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
+                        + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "'"
+                        + " FROM DUAL WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate()
+                        + "'" + " AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
+                        + "' AND PT = " + req.getPT() + "' );");
 
-            if (result == 0) {
-                return "Error - Conflicting Booking Exists";
-            } else if (result == 1) {
-                return "Success - Booking Successfully Created";
-            }
+        if (result == 0) {
+            return "Error - Conflicting Booking Exists";
+        } else if (result == 1) {
+            return "Success - Booking Successfully Created";
+        }
 
-            return "Error - Booking Creation Error";
-        } 
+        return "Error - Booking Creation Error";
     }
 
     /*
