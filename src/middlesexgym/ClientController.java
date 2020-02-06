@@ -102,8 +102,9 @@ public class ClientController extends ClientView {
             while (in.hasNext()) {
                 // Retrieve String Message
                 String temp = in.nextLine();
-                if (temp.contains("END"))
+                if (temp.contains("END")) {
                     break;
+                }
                 message += temp + "\n";
             }
 
@@ -174,7 +175,7 @@ public class ClientController extends ClientView {
             if (Integer.parseInt(createStartHours.getSelectionModel().getSelectedItem().toString()) <= localTime
                     .getHour()
                     || Integer.parseInt(createEndHours.getSelectionModel().getSelectedItem().toString()) <= localTime
-                            .getHour()) {
+                    .getHour()) {
                 if (Integer.parseInt(createStartMinutes.getSelectionModel().getSelectedItem().toString()) < localTime
                         .getMinute()
                         || Integer.parseInt(createEndMinutes.getSelectionModel().getSelectedItem()

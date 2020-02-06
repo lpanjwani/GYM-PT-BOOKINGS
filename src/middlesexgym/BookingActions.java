@@ -68,7 +68,7 @@ public class BookingActions {
     /*
      * Check if Clients, PT & Focus Entries are present in Database
      */
-    private String checkClientsPTExists(int clientID, int ptID) {
+    private String checkClientsPTExists(int clientID, int ptID, int focusID) {
         int clientCount = resultCount(
                 db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.client WHERE id=" + clientID + ";"));
         if (clientCount < 1)
@@ -78,9 +78,9 @@ public class BookingActions {
         if (ptCount < 1)
             return "Error - No Trainer with ID " + ptID + " Exists!";
 
-        int focusCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.focus WHERE id=" + ptID + ";"));
+        int focusCount = resultCount(db.runQuery("SELECT COUNT(*) AS COUNT FROM GYM.focus WHERE id=" + focusID + ";"));
         if (focusCount < 1)
-            return "Error - No Focus with ID " + ptID + " Exists!";
+            return "Error - No Focus with ID " + focusID + " Exists!";
 
         return null;
     }
@@ -190,7 +190,7 @@ public class BookingActions {
             // Acquire Lock so other threads cannot access the Database (Concurrency)
             lock.lock();
 
-            String error = checkClientsPTExists(req.getClient(), req.getPT());
+            String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
             if (error != null)
                 return error;
 
@@ -198,9 +198,9 @@ public class BookingActions {
                     "INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
                             + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
                             + req.getStartTime() + "'," + " '" + req.getEndTime() + "', '" + req.getFocus() + "' "
-                            + "FROM DUAL " + "WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '"
-                            + req.getDate() + "'" + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '"
-                            + req.getEndTime() + " AND PT = " + req.getPT() + "' );");
+                            + " WHERE NOT EXISTS( SELECT id FROM GYM.bookings " + "WHERE date = '" + req.getDate() + "'"
+                            + "AND endTime > '" + req.getStartTime() + "' " + "AND startTime < '" + req.getEndTime()
+                            + " AND PT = " + req.getPT() + "' );");
 
             if (result == 0) {
                 return "Error - Conflicting Booking Exists";
@@ -224,13 +224,15 @@ public class BookingActions {
 
             // bookingConditionAwait(req.getQuery());
 
-            String error = checkClientsPTExists(req.getClient(), req.getPT());
+            String error = checkClientsPTExists(req.getClient(), req.getPT(), req.getFocus());
             if (error != null)
                 return error;
 
             int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
-                    + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery() + ";");
+                    + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
+                    + " AND NOT EXISTS(SELECT * FROM GYM.bookings WHERE endTime > " + req.getStartTime()
+                    + " AND startTime < " + req.getStartTime() + ");");
 
             if (result == 1)
                 return "Success - Booking Successfully Updated";
@@ -252,7 +254,7 @@ public class BookingActions {
 
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)
-                return "Success - Booking Successfully Updated";
+                return "Success - Booking Successfully Deleted";
 
             return "Error - Booking Deleting Error";
         } catch (RuntimeException ex) {
