@@ -506,8 +506,6 @@ public class ClientController extends ClientView {
      */
     private void deleteBooking(ActionEvent event) {
         try {
-            // Populate Booking Fields from GUI
-            populateBookingFields();
             // Create class for Client-Server Communication
             Request request = new Request("DELETE", bookingID);
             // Send Request to Server
@@ -515,6 +513,7 @@ public class ClientController extends ClientView {
             // Handle Response Conditionally
             actionStateHandler(response);
         } catch (Exception ex) {
+	    ex.printStackTrace();
             // Throw Error via Alert Box
             actionErrorAlert("Error Deleting Booking");
         }
