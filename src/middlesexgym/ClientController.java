@@ -506,8 +506,6 @@ public class ClientController extends ClientView {
      */
     private void deleteBooking(ActionEvent event) {
         try {
-            // Populate Booking Fields from GUI
-            populateBookingFields();
             // Create class for Client-Server Communication
             Request request = new Request("DELETE", bookingID);
             // Send Request to Server
