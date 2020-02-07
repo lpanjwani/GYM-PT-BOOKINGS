@@ -201,24 +201,25 @@ public class BookingActions {
             if (error != null)
                 return error;
 
-	    System.out.println("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
+            System.out.println("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
                     + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
                     + " AND NOT EXISTS(SELECT id FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
-			       + "' AND startTime < '" + req.getEndTime() + "' AND NOT id = " + req.getQuery() + ");");
+                    + "' AND startTime < '" + req.getEndTime() + "' AND NOT id = " + req.getQuery() + ");");
 
             int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
                     + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
                     + " AND NOT EXISTS(SELECT id FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
-				      + "' AND startTime < '" + req.getEndTime() + "' AND date = '" + req.getDate() + "' AND NOT id = " + req.getQuery() + ");");
+                    + "' AND startTime < '" + req.getEndTime() + "' AND date = '" + req.getDate() + "' AND NOT id = "
+                    + req.getQuery() + ");");
 
             if (result == 1)
                 return "Success - Booking Successfully Updated";
 
             return "Error - Booking Updating Error";
         } catch (RuntimeException ex) {
-            return "Error - Booking Deleting Error";
+            return "Error - Booking Updating Error";
         }
     }
 
