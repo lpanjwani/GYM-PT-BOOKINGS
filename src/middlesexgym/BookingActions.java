@@ -5,7 +5,7 @@ package middlesexgym;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.locks.ReentrantLock;
+import java.sql.Time;
 
 /**
  * This class deals with performance SQL commands required for the GYM
@@ -78,6 +78,26 @@ public class BookingActions {
             return "Error - No Focus with ID " + focusID + " Exists!";
 
         return null;
+    }
+
+    /*
+     * Start Time & End Time Verification
+     */
+    private boolean checkTimingsCorrect(Time startTime, Time endTime) {
+        // Compare Difference between Start Time & End Time for Verification
+        int diff = endTime.compareTo(startTime);
+        // Throw Error if Time is incorrect
+        if (diff < 0 || diff == 0) {
+            // Throw Illegal Argument
+            return false;
+        }
+
+        // Check with GYM Operating Timings
+        if (startTime.before(Time.valueOf("07:00:00"))) {
+            return false;
+        }
+
+        return true;
     }
 
     /*
@@ -175,6 +195,12 @@ public class BookingActions {
         if (error != null)
             return error;
 
+        // Check for Correct Timings
+        boolean time = checkTimingsCorrect(req.getStartTime(), req.getEndTime());
+        if (!time)
+            return "Error - Start & End Time are invalid!";
+
+        // Run DB Update
         int result = db
                 .runUpdate("INSERT INTO GYM.bookings (`client`," + "`trainer`,`date`,`startTime`,`endTime`,`focus`) "
                         + "SELECT '" + req.getClient() + "', '" + req.getPT() + "'," + " '" + req.getDate() + "', '"
@@ -201,12 +227,12 @@ public class BookingActions {
             if (error != null)
                 return error;
 
-            System.out.println("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
-                    + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
-                    + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
-                    + " AND NOT EXISTS(SELECT id FROM GYM.bookings WHERE endTime > '" + req.getStartTime()
-                    + "' AND startTime < '" + req.getEndTime() + "' AND NOT id = " + req.getQuery() + ");");
+            // Check for Correct Timings
+            boolean time = checkTimingsCorrect(req.getStartTime(), req.getEndTime());
+            if (!time)
+                return "Error - Start & End Time are invalid!";
 
+            // Run DB Update
             int result = db.runUpdate("UPDATE GYM.bookings SET client=" + req.getClient() + ", trainer=" + req.getPT()
                     + ", date='" + req.getDate() + "', startTime='" + req.getStartTime() + "', endTime='"
                     + req.getEndTime() + "', focus=" + req.getFocus() + " WHERE id=" + req.getQuery()
@@ -228,7 +254,12 @@ public class BookingActions {
      */
     public String deleteBooking(Request req) {
         try {
+            // Check for Correct Timings
+            boolean time = checkTimingsCorrect(req.getStartTime(), req.getEndTime());
+            if (!time)
+                return "Error - Start & End Time are invalid!";
 
+            // Run DB Update
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)
                 return "Success - Booking Successfully Deleted";
