@@ -254,11 +254,6 @@ public class BookingActions {
      */
     public String deleteBooking(Request req) {
         try {
-            // Check for Correct Timings
-            boolean time = checkTimingsCorrect(req.getStartTime(), req.getEndTime());
-            if (!time)
-                return "Error - Start & End Time are invalid!";
-
             // Run DB Update
             int result = db.runUpdate("DELETE FROM GYM.bookings WHERE id=" + req.getQuery() + ";");
             if (result == 1)
