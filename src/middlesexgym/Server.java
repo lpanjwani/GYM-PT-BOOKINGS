@@ -99,16 +99,14 @@ class CommandLineRequest {
                 break;
             // Update Existing Bookings
             case "UPDATE":
-                req = new Request("UPDATE");
-                req.setAdditionalData(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Date.valueOf(args[3]),
-                        Time.valueOf(args[4]), Time.valueOf(args[5]), Integer.parseInt(args[6]));
+                req = new Request("UPDATE", Integer.parseInt(args[1]));
+                req.setAdditionalData(Integer.parseInt(args[2]), Integer.parseInt(args[3]), Date.valueOf(args[4]),
+                        Time.valueOf(args[5]), Time.valueOf(args[6]), Integer.parseInt(args[7]));
                 printString(actions.updateBooking(req));
                 break;
             // Delete Existing Bookings
             case "DELETE":
-                req = new Request("DELETE");
-                req.setAdditionalData(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Date.valueOf(args[3]),
-                        Time.valueOf(args[4]), Time.valueOf(args[5]), Integer.parseInt(args[6]));
+                req = new Request("DELETE", Integer.parseInt(args[1]));
                 printString(actions.deleteBooking(req));
                 break;
             }
