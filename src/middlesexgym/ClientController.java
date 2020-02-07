@@ -513,6 +513,7 @@ public class ClientController extends ClientView {
             // Handle Response Conditionally
             actionStateHandler(response);
         } catch (Exception ex) {
+	    ex.printStackTrace();
             // Throw Error via Alert Box
             actionErrorAlert("Error Deleting Booking");
         }
