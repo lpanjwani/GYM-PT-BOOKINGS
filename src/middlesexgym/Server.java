@@ -16,8 +16,6 @@ import java.util.logging.Logger;
 /**
  * This class initializes the Server-Side Java Application and starts
  * ClientRequest to achieve Concurrent Multiple Clients Functionality
- *
- * @author Lavesh Panjwani (M00692913)
  */
 public class Server {
 
@@ -60,7 +58,6 @@ public class Server {
  * This class handles Conditional Routing of CLI Command & redirects
  * accordingly.
  *
- * @author Lavesh Panjwani (M00692913)
  */
 class CommandLineRequest {
 
@@ -127,7 +124,6 @@ class CommandLineRequest {
 /**
  * This class handles Conditional Routing of Request & redirects accordingly.
  *
- * @author Lavesh Panjwani (M00692913)
  */
 class ClientRequest implements Runnable {
 

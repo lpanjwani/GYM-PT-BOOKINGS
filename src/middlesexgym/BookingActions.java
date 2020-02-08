@@ -10,8 +10,7 @@ import java.sql.Time;
 /**
  * This class deals with performance SQL commands required for the GYM
  * Application.
- * 
- * @author Lavesh Panjwani (M00692913)
+ *
  */
 public class BookingActions {
 

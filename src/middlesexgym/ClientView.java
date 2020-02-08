@@ -20,7 +20,6 @@ import javafx.scene.text.Font;
  * This class deals with placing & layout of User Interface Components. The
  * class is the abstracted for security measures.
  * 
- * @author Lavesh Panjwani (M00692913)
  */
 public abstract class ClientView extends VBox {
 

@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 /**
  * This class initializes the Client-Side Graphical User Interface
  * 
- * @author Lavesh Panjwani (M00692913)
  */
 public class GymClient extends Application {
 

@@ -24,7 +24,6 @@ import javafx.scene.control.TextInputDialog;
  * This class deals with handling & controlling User Interface components and
  * Server
  *
- * @author Lavesh Panjwani (M00692913)
  */
 public class ClientController extends ClientView {
 

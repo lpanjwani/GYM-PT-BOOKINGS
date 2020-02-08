@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * This class deals with Database Connections & Native Java Management
  * 
- * @author Lavesh Panjwani (M00692913)
  */
 public class Database {
 

@@ -11,7 +11,6 @@ import java.sql.Time;
  * process the request. The class implements Serializable so that it can be
  * received by the Java Object Stream
  * 
- * @author Lavesh Panjwani (M00692913)
  */
 public class Request implements Serializable {
 
